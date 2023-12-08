@@ -2,37 +2,30 @@ const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
 
-async function user() {
+async function contact() {
   const sequelize = await connect();
-  const User = sequelize.define('users', {
+  const Contact = sequelize.define('contacts', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique:true
-    },
-    fullName: {
+    title: {
       type: DataTypes.STRING,
       allowNull: false
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
+    content: {
+        type: DataTypes.TEXT,
+        allowNull: false
     },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
+    image_kink:{
+        type: DataTypes.STRING,
+        allowNull: true
     },
-    block: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
+    user_id:{
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -42,13 +35,13 @@ async function user() {
       type: DataTypes.DATE,
       allowNull: true
     }
-  }, {
+  },{
     timestamps: true,
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  await User.sync({ force: false });
-  return User;
+  await Contact.sync({ force: false });
+  return Contact;
 }
 
-module.exports = user;
+module.exports = contact;

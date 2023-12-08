@@ -1,29 +1,29 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
-
-async function user() {
+const role = require('./Role');
+const permission = require('./Permission');
+async function roleHasPermission() {
   const sequelize = await connect();
-  const User = sequelize.define('users', {
+  const RoleHasPermission = sequelize.define('role_has_pers', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
+    role_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
-      unique:true
     },
-    fullName: {
-      type: DataTypes.STRING,
+    permission_id: {
+      type: DataTypes.INTEGER,
       allowNull: false
     },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true
+    status:{
+        type: DataTypes.STRING,
+        allowNull: true,
+        defaultValue:"on"
     },
     password: {
       type: DataTypes.STRING,
@@ -47,8 +47,12 @@ async function user() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  await User.sync({ force: false });
-  return User;
+  const Role = await role();
+  const Permission = await permission();
+  RoleHasPermission.hasOne(Role,{foreignKey:'role_id'})
+  RoleHasPermission.hasOne(Permission,{foreignKey:'permission_id'})
+  await RoleHasPermission.sync({ force: false });
+  return RoleHasPermission;
 }
 
-module.exports = user;
+module.exports = roleHasPermission;
