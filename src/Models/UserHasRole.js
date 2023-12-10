@@ -1,6 +1,8 @@
 const { connect } = require('../dbconnect');
 const Sequelize =require('sequelize');
 const DataTypes= Sequelize.DataTypes;
+const role = require('./Role');
+const user = require('./User');
 async function userHasRole() {
     const sequelize = await connect();
     const UserHasRole = sequelize.define('user_has_roles', {
@@ -36,6 +38,10 @@ async function userHasRole() {
       createdAt: 'createdAt',
       updatedAt: 'updatedAt',
     });
+    const Role = await role();
+    const User = await user();
+    UserHasRole.belongsTo(Role, { foreignKey: 'role_id' });
+    UserHasRole.belongsTo(User, { foreignKey: 'user_id' });
     await UserHasRole.sync({ force: false });
     return UserHasRole;
   }
