@@ -10,6 +10,7 @@ const initUserHasRole = require('../Models/UserHasRole');
 const initPermission = require('../Models/Permission');
 const initRoleHasPermission = require('../Models/RoleHasPermission');
 const initPlatfromRegister = require('../Models/PlatformRegister');
+const initUserGroup = require('../Models/UserGroup');
 const initSlide = require('../Models/Slide');
 async function setup() {
     const sequelize = await db.connect();
@@ -25,6 +26,7 @@ async function setup() {
     const UserHasRole = initUserHasRole(sequelize);
     const RoleHasPermission = initRoleHasPermission(sequelize);
     const PlatformRegister = initPlatfromRegister(sequelize);
+    const UserGroup = initUserGroup(sequelize);
     await sequelize.sync({ force: false });
     return [
         User,Slide,
