@@ -1,0 +1,15 @@
+const express = require('express');
+const { TokenCheckMiddleware } = require('../utils/middleware.js');
+const router = express.Router();
+const user_controller = require('../controllers/UserController.js');
+router.get('/get-all',TokenCheckMiddleware,user_controller.index);
+router.get('/user-by-id/:id',TokenCheckMiddleware,user_controller.findOne);
+router.put('/update/:id',TokenCheckMiddleware,user_controller.updateUser);
+router.post('/login',user_controller.login);
+router.post('/register',user_controller.signup);
+router.get('/checkEmail/:email',user_controller.checkEmail);
+router.delete('/user-delete/:id',TokenCheckMiddleware,user_controller.deleteUser);
+router.get("/block-user/:id",TokenCheckMiddleware,user_controller.blockUser);
+router.get("/unblock-user/:id",TokenCheckMiddleware,user_controller.unBlockUser);
+router.put("/update-profile",TokenCheckMiddleware,user_controller.updateProfile);
+module.exports = router;
