@@ -1,5 +1,5 @@
 const decodeToken = require('./decodeToken');
-const secret = process.env.SECRET_KEY;
+const secret = process.env.SECRET;
 const express = require('express');
 const router = express.Router();
 const jwt = require('jsonwebtoken');

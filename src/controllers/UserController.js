@@ -2,12 +2,11 @@ const { send } = require('express/lib/response');
 const setup = require('../Models/User');
 const path = require('path');
 const moment = require('moment');
-const Joi = require('joi');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const shortid = require('shortid');
 const multer = require('multer');
-const secret =process.env.SECRET_KEY;
+const secret =process.env.SECRET;
 // shortid.characters('0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ$@');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -83,6 +82,7 @@ class UserController{
                 email: email
             },
             });
+            console.log(user)
             if(user.block === true || user.block === 1){
                 return res.json({
                     success:true,
@@ -104,7 +104,6 @@ class UserController{
                 message: 'Invalid email or password',
             });
             }
-            console.log(secret)
             const token = jwt.sign(
             { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email } },
             secret,
@@ -124,32 +123,17 @@ class UserController{
         }
     }
      signup = async (req,res)=>{
-        const { name,fullName, email, password,offerCode} = req.body;
-        const schema = Joi.object({
-          name: Joi.string().required(),
-          fullName: Joi.string().required(),
-          email: Joi.string().email().required(),
-          password: Joi.string().required(),
-          createdAt: Joi.date().iso().required(),
-          updatedAt: Joi.date().iso().optional().allow(null),
-        });
-      
-        // Validate and sanitize the request body
-        const isoDate = moment().toISOString();
-        const Code = await code();
-        req.body.createdAt = isoDate;
+        const { name,fullName, email, password} = req.body;
         const bcryptPass = password;
         const saltRounds = 10;
         try {
+         if(email === 'admin@gmail.com'){
+             return res.json({
+                success:false,
+                message:"you don't allow to create account with this email. please consider another one"
+             })
+         }
           const afterhashPass = await bcrypt.hash(bcryptPass, saltRounds);
-          const { error, value } = schema.validate(req.body, { stripUnknown: true });
-      
-          if (error) {
-            console.log('Error while validating request body', error);
-            return res.status(400).json({ error: error.details[0].message });
-          }
-      
-          // Create a new user using the validated and sanitized request body
           const User = await setup();
           const user = await User.findOne({
             where: {
@@ -157,24 +141,21 @@ class UserController{
             },
             });
             if(!user){
-            const build = User.build({
-                name: name,
-                fullName: fullName,
-                email: email,
-                password: afterhashPass,
-                createdAt: isoDate,
-                updatedAt: null,
-              });
-          
-              const newUser = await build.save();
-              if(newUser){
-                    if(saveFlower){
+                const build = User.build({
+                    name: name,
+                    fullName: fullName,
+                    email: email,
+                    password: afterhashPass
+                });
+            
+                const newUser = await build.save();
+                    if(newUser){
+                        const dataValues = newUser.dataValues;
                         const token = jwt.sign(
-                            { user: { id: dataValues.id, name: dataValues.name,fullName:dataValues.fullName, email: dataValues.email } },
+                            { user: { id: dataValues.id, name: dataValues.name,fullName:dataValues.fullName, email: dataValues.email,role:"user",permissions:"" } },
                             secret,
                             { expiresIn: '24h' }
                         );
-    
                         if(token){
                             return res.json({
                                 token:token,
@@ -182,14 +163,17 @@ class UserController{
                                 message: 'you have signed up successfully' 
                             });
                         }
-                    }else{
-                        return res.json({
-                            token:null,
-                            success:false,
-                            message: 'something wrong happened during process' 
-                        });
-                    }
-              }
+                }else{
+                    return res.json({
+                        success:false,
+                        message:"Something went wrong while processing"
+                    })
+                }
+            }else{
+                return res.json({
+                    success:false,
+                    message:"The email has been taken please use another one.thanks"
+                })
             }
         } catch (error) {
           console.log('Error while sign up', error);
@@ -221,11 +205,13 @@ class UserController{
         });
         if(!user){
             return res.json({
-                status:false
+                status:false,
+                message:"Email still available"
             })
         }else{
            return res.json({
-                status:true
+                status:true,
+                message:"Email has been taken . please choose another one"
             })
         }
     }

@@ -2,9 +2,9 @@ const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
 
-async function role() {
+async function slide() {
   const sequelize = await connect();
-  const Role = sequelize.define('roles', {
+  const Slide = sequelize.define('slides', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -36,8 +36,8 @@ async function role() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  await Role.sync({ force: false });
-  return Role;
+  await Slide.sync({ force: false });
+  return Slide;
 }
 
-module.exports = role;
+module.exports = slide;

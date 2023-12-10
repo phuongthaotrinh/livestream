@@ -25,15 +25,6 @@ async function roleHasPermission() {
         allowNull: true,
         defaultValue:"on"
     },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    block: {
-      type: DataTypes.BOOLEAN,
-      allowNull: true,
-      defaultValue: false,
-    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true

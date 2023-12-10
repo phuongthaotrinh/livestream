@@ -18,6 +18,11 @@ async function userHasRole() {
         type: DataTypes.INTEGER,
         allowNull: false
       },
+      status:{
+        type:DataTypes.STRING,
+        allowNull:true,
+        defaultValue:"on"
+      },
       createdAt:{
         type:DataTypes.DATE,
         allowNull: true
