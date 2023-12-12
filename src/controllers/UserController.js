@@ -1,6 +1,8 @@
 const setup = require('../Models/User');
 const userGroup = require('../Models/UserGroup');
 const role = require('../Models/Role');
+const roleHasPermission = require('../Models/RoleHasPermission');
+const permission = require('../Models/Permission');
 const path = require('path');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
@@ -25,6 +27,7 @@ const upload = multer({ storage }).single('image');
 class UserController{
     constructor() {
         this.addNewUser = this.addNewUser.bind(this);
+        this.getUserRoleAndPermissions = this.getUserRoleAndPermissions.bind(this);
     }
     async index(req,res){
         const User = await setup();
@@ -75,7 +78,7 @@ class UserController{
           }
       }
       // login method
-      async login(req, res) {
+      login = async(req, res)=>{
         const { email, password } = req.body;
         const User = await setup();
         try {
@@ -106,16 +109,19 @@ class UserController{
                 message: 'Invalid email or password',
             });
             }
-            const token = jwt.sign(
-            { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email } },
-            secret,
-            { expiresIn: '24h' }
-            ); 
-            return res.json({
-            success: true,
-            token: token,
-            message:"you have loged in successfully"
-            });
+            const roleAndPermission = await this.getUserRoleAndPermissions(user.id);
+            if(roleAndPermission){
+                const token = jwt.sign(
+                    { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email,roleAndPermission } },
+                    secret,
+                    { expiresIn: '24h' }
+                    ); 
+                return res.json({
+                    success: true,
+                    token: token,
+                    message:"you have loged in successfully"
+                });
+            }
         } catch (error) {
             console.error(error);
             return res.json({
@@ -124,6 +130,47 @@ class UserController{
             });
         }
     }
+
+    // get user role and permissions 
+     getUserRoleAndPermissions = async(userId)=>{
+        try {
+          const UserHasRole = await userHasRole();
+          const RoleHasPermission = await roleHasPermission();
+          const Role = await role();
+          const Permission = await permission();
+          const userRoleInfo = await UserHasRole.findOne({
+            where: { user_id: userId},
+            include: [Role],
+          });
+      
+          if (userRoleInfo) {
+            const {user_id, role } = userRoleInfo;
+            if(role){
+                const permissionDatas = await RoleHasPermission.findAll({
+                    where:{
+                        role_id:role.dataValues.id
+                    },
+                    include:{
+                        model:Permission,
+                        attributes: ['id', 'name'],
+                    }
+                })
+                if(permissionDatas){
+                    let allPermission = null;
+                    permissionDatas.forEach((e)=>{
+                         allPermission = e.dataValues.permission;    
+                    })
+                    return {role:role,permission:allPermission}
+                }
+            }
+          } else {
+            return {}
+          }
+        } catch (error) {
+          return {}
+        }
+      }
+
      signup = async (req,res)=>{
         const { name,fullName, email, password} = req.body;
         if(!name || !fullName || !email || !password){

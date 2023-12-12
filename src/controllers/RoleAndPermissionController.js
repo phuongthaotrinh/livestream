@@ -31,10 +31,79 @@ class RoleAndPermissionController{
     }
     // get user along with role 
     roleHasPer = async(req,res)=>{
+        const Permission = await permission();
+        const Role = await role();
+        const RoleHasPermission = await roleHasPer();
+        const {role_id} = req.params;
+        const checkRole = await Role.findOne({
+            where:{
+                id:role_id
+            }
+        });
+        if(checkRole !== null){
+            const permissions = await RoleHasPermission.findAll({
+                where:{
+                    role_id:role_id
+                },
+                include:{
+                    model:Permission,
+                    attributes: ['id', 'name'],
+                }
+            })
+            if(permissions){
+                return res.json({
+                    success:true,
+                    data:permissions
+                })
+            }else{
+                return res.json({
+                    success:true,
+                    data:[]
+                })
+            }
+        }else{
+            return res.json({
+                success:false,
+                message:"role is not found"
+            })
+        }
 
     }
     userHasRole = async(req,res)=>{
-
+       const {user_id} = req.params;
+       const User = await user();
+       const Role = await role();
+       const UserHasRole = await userHasRole();
+       const checkUser = await User.findOne({
+          where:{
+             id:user_id
+          }
+       });
+       if(checkUser !== null){
+          const roles = await UserHasRole.findAll({
+              where:{user_id:user_id},
+              include:{
+                model:Role,
+                attributes:['id','name']
+              }
+          });
+            if(roles){
+             return res.json({
+                success:true,
+                data:roles
+            })
+          }else{
+            return res.json({
+                success:false,
+                data:[]
+            })
+          }
+       }else{
+         return res.json({
+            success:false,
+            message:"user not found"
+         })
+       }
     }
     // get all permissions 
     getAllPermission = async(req,res)=>{

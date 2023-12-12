@@ -40,8 +40,8 @@ async function roleHasPermission() {
   });
   const Role = await role();
   const Permission = await permission();
-  RoleHasPermission.hasOne(Role,{foreignKey:'role_id'})
-  RoleHasPermission.hasOne(Permission,{foreignKey:'permission_id'})
+  RoleHasPermission.belongsTo(Role,{foreignKey:'role_id'})
+  RoleHasPermission.belongsTo(Permission,{foreignKey:'permission_id'})
   await RoleHasPermission.sync({ force: false });
   return RoleHasPermission;
 }
