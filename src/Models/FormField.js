@@ -2,23 +2,26 @@ const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
 
-async function livestreamPlatform() {
+async function formField() {
   const sequelize = await connect();
-  const LiveStreamPlatform = sequelize.define('livestream_platforms', {
+  const FormField  = sequelize.define('form_fields', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
+    form_id: {
+      type: DataTypes.INTEGER,
       allowNull: false
     },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue:"on"
+    field_id:{
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
+    field_order:{
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -33,8 +36,8 @@ async function livestreamPlatform() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  await LiveStreamPlatform.sync({ force: true });
-  return LiveStreamPlatform;
+  await FormField.sync({ force: false });
+  return FormField;
 }
 
-module.exports = livestreamPlatform;
+module.exports = formField;
