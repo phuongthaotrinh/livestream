@@ -2,9 +2,9 @@ const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
 
-async function livestreamPlatform() {
+async function form() {
   const sequelize = await connect();
-  const LiveStreamPlatform = sequelize.define('livestream_platforms', {
+  const Form  = sequelize.define('forms', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
@@ -15,10 +15,9 @@ async function livestreamPlatform() {
       type: DataTypes.STRING,
       allowNull: false
     },
-    status: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue:"on"
+    platform_id:{
+        type: DataTypes.INTEGER,
+        allowNull: false
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -33,8 +32,8 @@ async function livestreamPlatform() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  await LiveStreamPlatform.sync({ force: true });
-  return LiveStreamPlatform;
+  await Form.sync({ force: false });
+  return Form;
 }
 
-module.exports = livestreamPlatform;
+module.exports = form;

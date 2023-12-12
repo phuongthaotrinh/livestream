@@ -12,6 +12,9 @@ const initRoleHasPermission = require('../Models/RoleHasPermission');
 const initPlatfromRegister = require('../Models/PlatformRegister');
 const initUserGroup = require('../Models/UserGroup');
 const initSlide = require('../Models/Slide');
+const initField = require('../Models/Field');
+const initForm = require('../Models/Form');
+const initFormField = require('../Models/FormField');
 async function setup() {
     const sequelize = await db.connect();
     const User = initUserModel(sequelize);
@@ -27,6 +30,9 @@ async function setup() {
     const RoleHasPermission = initRoleHasPermission(sequelize);
     const PlatformRegister = initPlatfromRegister(sequelize);
     const UserGroup = initUserGroup(sequelize);
+    const Field = initField(sequelize);
+    const Form = initForm(sequelize);
+    const FormField = initFormField(sequelize);
     await sequelize.sync({ force: false });
     return [
         User,Slide,
@@ -34,7 +40,7 @@ async function setup() {
         Contact,LiveStreamPlatform,
         LiveStreamType,Notification,
         UserHasRole,RoleHasPermission,
-        PlatformRegister
+        PlatformRegister,UserGroup
     ];
 }
 setup()
