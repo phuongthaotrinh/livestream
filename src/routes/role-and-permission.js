@@ -18,4 +18,8 @@ router.post('/assign-role-for-user',TokenCheckMiddleware,role_per_controller.ass
 router.put('/remove-role-for-user',TokenCheckMiddleware,role_per_controller.unAssignRoleForUser);
 // re assign role for user 
 router.put('/reassign-role-for-user',TokenCheckMiddleware,role_per_controller.reAssignRoleForUser)
+// get permission belong to role
+router.get('/get-per-belong-to-role/:role_id',TokenCheckMiddleware,role_per_controller.roleHasPer);
+// get role belong to user 
+router.get('/get-role-belong-to-user/:user_id',TokenCheckMiddleware,role_per_controller.userHasRole)
 module.exports = router;
