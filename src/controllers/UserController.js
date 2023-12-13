@@ -56,15 +56,18 @@ class UserController{
     async updateUser(req,res){
         const {id} = req.params;
         const User = await setup();
-        let date = new Date();
-        const isoDate = moment(date).toISOString();
-        const {name,email,password,createdAt,updatedAt} = req.body;
-         const Edit = User.update({
+        const {name,email,password,fullName} = req.body;
+        if(!name || !email || !password || !fullName){
+            return res.json({
+                success:false,
+                message:"one of your input is empty"
+            })
+        }
+         const Edit = await User.update({
             name:name,
+            fullName:fullName,
             email:email,
             password:password,
-            createdAt:createdAt,
-            updatedAt:isoDate
           },{
               where: {
               id: id
@@ -87,27 +90,26 @@ class UserController{
                 email: email
             },
             });
-            console.log(user)
             if(user.block === true || user.block === 1){
                 return res.json({
-                    success:true,
+                    success:false,
                     message:"your account has been blocked. please contact admin to solve it"
                 })
             }
             if (!user) {
-            return res.json({
-                success:false,
-                message: 'You have not signed up yet. please signs up first thanks.',
-            });
+                return res.json({
+                    success:false,
+                    message: 'You have not signed up yet. please signs up first thanks.',
+                });
             }
         
             const match = await bcrypt.compare(password, user.password);
         
             if (!match) {
-            return res.json({
-                success:false,
-                message: 'Invalid email or password',
-            });
+                return res.json({
+                    success:false,
+                    message: 'Invalid email or password',
+                });
             }
             const roleAndPermission = await this.getUserRoleAndPermissions(user.id);
             if(roleAndPermission){
@@ -125,8 +127,8 @@ class UserController{
         } catch (error) {
             console.error(error);
             return res.json({
-            success:false,
-            message: 'An error occurred while logging in',
+                success:false,
+                message: 'An error occurred while logging in',
             });
         }
     }
@@ -178,6 +180,12 @@ class UserController{
                 success:false,
                 message:"Some of input fields are being empty plase check again"
             })
+           }
+           if(password.length < 7){
+             return res.json({
+                success:false,
+                message:"Password should greater than 7 characters"
+             })
            }
         const bcryptPass = password;
         const saltRounds = 10;
@@ -232,7 +240,9 @@ class UserController{
             }
         } catch (error) {
           console.log('Error while sign up', error);
-          return res.status(500).json({ error: 'Internal server error' });
+          return res.status(500).json({
+            success:false,
+            message: 'Internal server error' });
         }
     }
     async deleteUser(req,res){

@@ -1,22 +1,22 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
-const formTemplate = require('../Models/FormTemplates');
-const fields = require('../Models/Field');
-async function formField() {
+const livestream_types = require('../Models/LivestreamType');
+const livestream_platforms = require('../Models/LivestreamPlatform');
+async function typeHasPlatform() {
   const sequelize = await connect();
-  const FormField  = sequelize.define('form_fields', {
+  const TypeHasPlatform = sequelize.define('type_has_platforms', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
     },
-    form_id: {
+    platform_id: {
       type: DataTypes.INTEGER,
       allowNull: false
     },
-    field_id:{
+    live_type_id: {
         type: DataTypes.INTEGER,
         allowNull: false
     },
@@ -33,12 +33,12 @@ async function formField() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  const FormTemplates = await formTemplate();
-  const Field = await fields();
-  FormField.belongsTo(FormTemplates,{foreignKey:'form_id'});
-  FormField.belongsTo(Field,{foreignKey:'field_id'});
-  await FormField.sync({ force: false });
-  return FormField;
+  const LiveStreamPlatform = await livestream_platforms();
+  const LiveStreamType = await livestream_types();
+  TypeHasPlatform.belongsTo(LiveStreamPlatform,{foreignKey:'platform_id'})
+  TypeHasPlatform.belongsTo(LiveStreamType,{foreignKey:'live_type_id'})
+  await TypeHasPlatform.sync({ force: false });
+  return TypeHasPlatform;
 }
 
-module.exports = formField;
+module.exports = typeHasPlatform;
