@@ -33,7 +33,7 @@ async function livestreamPlatform() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  await LiveStreamPlatform.sync({ force: true });
+  await LiveStreamPlatform.sync({ force: false });
   return LiveStreamPlatform;
 }
 

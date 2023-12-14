@@ -1,6 +1,11 @@
 const livestreamPlatform = require('../Models/LivestreamPlatform');
 const livestreamType = require('../Models/LivestreamType');
 const platformRegister = require('../Models/PlatformRegister');
+const field = require('../Models/Field');
+const formTemplate = require('../Models/FormTemplates');
+const formField = require('../Models/FormField');
+const typeHasPlatform = require('../Models/TypeHasPlatForm');
+const user = require('../Models/User');
 class PlatformController{
     // retrive all platform and type 
     async getAll(req,res){
@@ -121,5 +126,106 @@ class PlatformController{
             })
         }
     }
+    // create fields
+    async addField(req, res) {
+        try {
+            const Field = await field();
+            const FormTemplates = await formTemplate();
+            const FormField = await formField();
+            const TypeHasPlatForm = await typeHasPlatform();
+    
+            const { field_data, platform_id, form_name, live_type_id } = req.body;
+            const build =  Field.build({
+                field_data: field_data
+            });
+    
+            const buildTempalte =  FormTemplates.build({
+                name: form_name,
+                platform_id: platform_id
+            });
+    
+            const buildTypeHasPlatform =  TypeHasPlatForm.build({
+                platform_id: platform_id,
+                live_type_id: live_type_id
+            });
+    
+            const saveTypeHasPlatform = await buildTypeHasPlatform.save();
+            const saveTemplate = await buildTempalte.save();
+            const save = await build.save();
+    
+            if (save && saveTemplate && saveTypeHasPlatform) {
+                const field_id = save.dataValues.id;
+                const template_id = saveTemplate.dataValues.id;
+    
+                if (field_id && template_id) {
+                    const buildFormField = FormField.build({
+                        form_id: template_id,
+                        field_id: field_id
+                    });
+    
+                    const saveFormField = await buildFormField.save();
+    
+                    if (saveFormField) {
+                        return res.json({
+                            success: true,
+                            message: "You have added a new field successfully"
+                        });
+                    }
+                }
+            }
+    
+            return res.json({
+                success: false,
+                message: "Something went wrong while processing"
+            });
+        } catch (error) {
+            console.error("Error in addField:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal Server Error"
+            });
+        }
+    }
+    // create user submissions
+    async createUserSubmissions(req,res) {
+        try {
+          const {user_id,form_id,field_value,field_id} = req.body;
+          const PlatformRegister = await platformRegister();
+          const Field = await field();
+          if(!user_id || !form_id || !field_value){
+            return res.json({
+                success:false,
+                message:"One of the input field is empty"
+            })
+          }
+             
+          const buildSubmission = PlatformRegister.build({
+            user_id: user_id,
+            form_id: form_id
+          });
+          const [affectedRows] = await Field.update({
+            field_value:field_value
+          },{
+            where:{
+                id:field_id
+            }
+          })
+
+          const saveSubmission = await buildSubmission.save();
+      
+          if (saveSubmission && affectedRows > 0) {
+            return res.json({
+              success: true,
+              message: "Your info is saved successfully."
+            });
+          }
+        } catch (error) {
+          console.error("Error in createUserSubmissions:", error);
+          return res.status(500).json({
+            success: false,
+            message: "Internal Server Error"
+          });
+        }
+      }
 }
 module.exports = new PlatformController();

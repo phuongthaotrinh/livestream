@@ -11,9 +11,13 @@ async function field() {
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
+    field_data: {
+      type: DataTypes.JSON,
       allowNull: false
+    },
+    field_value:{
+      type: DataTypes.JSON,
+      allowNull: true
     },
     createdAt: {
       type: DataTypes.DATE,
