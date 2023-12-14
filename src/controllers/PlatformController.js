@@ -158,7 +158,7 @@ class PlatformController{
                 const template_id = saveTemplate.dataValues.id;
     
                 if (field_id && template_id) {
-                    const buildFormField = await FormField.build({
+                    const buildFormField = FormField.build({
                         form_id: template_id,
                         field_id: field_id
                     });
@@ -189,24 +189,31 @@ class PlatformController{
     // create user submissions
     async createUserSubmissions(req,res) {
         try {
-          const {user_id,form_id} = req.body;
-        //   const User = await user();
-        //   const FormTemplates = await formTemplate();
+          const {user_id,form_id,field_value,field_id} = req.body;
           const PlatformRegister = await platformRegister();
-          if(!user_id && !form_id){
+          const Field = await field();
+          if(!user_id || !form_id || !field_value){
             return res.json({
                 success:false,
                 message:"One of the input field is empty"
             })
           }
+             
           const buildSubmission = PlatformRegister.build({
             user_id: user_id,
             form_id: form_id
           });
-      
+          const [affectedRows] = await Field.update({
+            field_value:field_value
+          },{
+            where:{
+                id:field_id
+            }
+          })
+
           const saveSubmission = await buildSubmission.save();
       
-          if (saveSubmission) {
+          if (saveSubmission && affectedRows > 0) {
             return res.json({
               success: true,
               message: "Your info is saved successfully."
