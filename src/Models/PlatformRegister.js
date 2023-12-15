@@ -5,6 +5,7 @@ const livestream_platforms = require('./LivestreamPlatform');
 const livestream_types = require('./LivestreamType');
 const users = require('./User');
 const formTemplate = require('./FormTemplates');
+const formField = require('./FormField');
 async function user() {
   const sequelize = await connect();
   const PlatformRegister = sequelize.define('platform_registers', {
@@ -19,6 +20,10 @@ async function user() {
       allowNull:false,
     },
     form_id:{
+      type:DataTypes.INTEGER,
+      allowNull:false,
+    },
+    form_field_id:{
       type:DataTypes.INTEGER,
       allowNull:false,
     },
@@ -41,9 +46,11 @@ async function user() {
     updatedAt: 'updatedAt',
   });
   const User = await users();
+  const FomrField = await formField();
   const FormTemplates = await formTemplate();
   PlatformRegister.belongsTo(User,{foreignKey:'user_id'});
   PlatformRegister.belongsTo(FormTemplates,{foreignKey:'form_id'});
+  PlatformRegister.belongsTo(FomrField,{foreignKey:'form_field_id'})
   await PlatformRegister.sync({ force: false });
   return PlatformRegister;
 }

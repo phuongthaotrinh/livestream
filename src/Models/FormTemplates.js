@@ -1,7 +1,7 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
-
+const liveStreamPlatform = require('../Models/LivestreamPlatform');
 async function form() {
   const sequelize = await connect();
   const Form  = sequelize.define('forms', {
@@ -32,6 +32,8 @@ async function form() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
+  const LiveStreamPlatform = await liveStreamPlatform();
+  Form.belongsTo(LiveStreamPlatform,{foreignKey:'platform_id'})
   await Form.sync({ force: false });
   return Form;
 }
