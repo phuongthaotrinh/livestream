@@ -228,11 +228,52 @@ class PlatformController{
           });
         }
       }
+      // add more type into platform
+    async addMoreType(req,res){
+         try {
+            const {platform_id,live_type_id} = req.body;
+            const TypeHasPlatForm = await typeHasPlatform();
+            if(!platform_id || !live_type_id){
+                return res.status(400).json({
+                    success:false,
+                    message:"one these fields can not be empty"
+                })
+            }
+            const checkExisting = await TypeHasPlatForm.findOne({
+                where:{
+                    platform_id:platform_id,
+                    live_type_id:live_type_id
+                }
+            });
+            if(checkExisting){
+                return res.status(400).json({
+                    success:false,
+                    message:"existed record !"
+                })
+            }
+           const save = await TypeHasPlatForm.create({
+               platform_id:platform_id,
+               live_type_id:live_type_id
+           });
+           if(save){
+              return res.status(201).json({
+                  success:true,
+                  message:"save successfully"
+              })
+           }else{
+                return res.status(400).json({
+                    success:false,
+                    message:"Error occurs while processing"
+                })
+           }
+         } catch (error) {
+            console.log(error)
+         }
+    }
       // create form 
       async getForm(req, res) {
         try {
           const { user_id } = req.params;
-      
           const Field = await field();
           const FormFields = await formField();
           const Forms = await formTemplate(); // Assuming formTemplate refers to forms
@@ -287,7 +328,5 @@ class PlatformController{
           });
         }
       }
-      
-      
 }
 module.exports = new PlatformController();

@@ -11,17 +11,14 @@ async function slide() {
       autoIncrement: true,
       primaryKey: true,
     },
-    name: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    type:{
-        type: DataTypes.STRING,
-        allowNull:true
-    },
     image_link:{
         type: DataTypes.STRING,
         allowNull:false
+    },
+    position:{
+      type:DataTypes.INTEGER,
+      allowNull:false,
+      defaultValue:0
     },
     createdAt: {
       type: DataTypes.DATE,
