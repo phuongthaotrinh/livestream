@@ -562,5 +562,52 @@ class UserController{
           })
        }
     }
+    // get all member in group 
+    async getAllMemberInGroup(req, res) {
+        try {
+            const { user_id } = req.params;
+    
+            // Assume these functions return promises
+            const UserHasRole = await userHasRole();
+            const UserGroup = await userGroup();
+            const Role = await role();
+            const User = await setup();
+    
+            const checkUserRole = await UserHasRole.findOne({
+                where: { user_id: user_id },
+                include: {
+                    model: Role,
+                    attributes: ['id', 'name']
+                }
+            });
+    
+            if (checkUserRole.role.name === 'manager') {
+                const userGroupData = await UserGroup.findAll({
+                    where: { user_id: user_id },
+                    include: {
+                        model: User
+                    }
+                });
+    
+                return res.status(200).json({
+                    success: true,
+                    data: userGroupData || []
+                });
+            } else {
+                // Handle other roles if needed
+                return res.status(403).json({
+                    success: false,
+                    message: "Access forbidden for this role."
+                });
+            }
+        } catch (error) {
+            console.error("Error in getAllMemberInGroup:", error);
+            return res.status(500).json({
+                success: false,
+                message: "Internal server error"
+            });
+        }
+    }
+    
 } 
 module.exports = new UserController();

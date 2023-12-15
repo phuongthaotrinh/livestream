@@ -23,4 +23,6 @@ router.put("/update-profile",TokenCheckMiddleware,user_controller.updateProfile)
 router.post("/add-new-child",TokenCheckMiddleware,user_controller.addNewChild);
 //  remove members from group
 router.post("/remove-member",TokenCheckMiddleware,user_controller.removeMember);
+// get all member in group 
+router.get('/get-all-member-in-group/:user_id',TokenCheckMiddleware,user_controller.getAllMemberInGroup);
 module.exports = router;
