@@ -227,5 +227,16 @@ class PlatformController{
           });
         }
       }
+      // add more type into platform
+    async addMoreType(req,res){
+         try {
+            const {platform_id,live_type_id} = req.body;
+            if(!platform_id || !live_type_id){
+                return res.status(400).
+            }
+         } catch (error) {
+            console.log(error)
+         }
+    }
 }
 module.exports = new PlatformController();

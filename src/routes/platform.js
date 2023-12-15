@@ -7,4 +7,5 @@ router.post('/add-live-stream-type',TokenCheckMiddleware,platform_controller.add
 router.post('/add-live-stream-platform',TokenCheckMiddleware,platform_controller.addLiveStreamPlatform);
 router.post('/add-field',TokenCheckMiddleware,platform_controller.addField);
 router.post('/create-new-submiss',TokenCheckMiddleware,platform_controller.createUserSubmissions);
+router.post('/add-more-type-into-platform',TokenCheckMiddleware,platform_controller.addMoreType);
 module.exports = router;

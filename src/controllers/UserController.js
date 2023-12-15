@@ -200,7 +200,8 @@ class UserController{
           const User = await setup();
           const user = await User.findOne({
             where: {
-                email: email
+                email:email,
+                name:name
             },
             });
             if(!user){
