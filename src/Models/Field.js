@@ -11,11 +11,11 @@ async function field() {
       autoIncrement: true,
       primaryKey: true,
     },
-    field_data: {
+    field_name: {
       type: DataTypes.JSON,
       allowNull: false
     },
-    field_value:{
+    field_data:{
       type: DataTypes.JSON,
       allowNull: true
     },

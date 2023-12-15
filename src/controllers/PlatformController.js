@@ -189,7 +189,7 @@ class PlatformController{
     // create user submissions
     async createUserSubmissions(req,res) {
         try {
-          const {user_id,form_id,field_value,field_id} = req.body;
+          const {user_id,form_id,field_value,field_id,form_field_id} = req.body;
           const PlatformRegister = await platformRegister();
           const Field = await field();
           if(!user_id || !form_id || !field_value){
@@ -201,7 +201,8 @@ class PlatformController{
              
           const buildSubmission = PlatformRegister.build({
             user_id: user_id,
-            form_id: form_id
+            form_id: form_id,
+            form_field_id:form_field_id
           });
           const [affectedRows] = await Field.update({
             field_value:field_value
@@ -220,11 +221,73 @@ class PlatformController{
             });
           }
         } catch (error) {
+            console.log(error)
           return res.status(500).json({
             success: false,
             message: "Internal Server Error"
           });
         }
       }
+      // create form 
+      async getForm(req, res) {
+        try {
+          const { user_id } = req.params;
+      
+          const Field = await field();
+          const FormFields = await formField();
+          const Forms = await formTemplate(); // Assuming formTemplate refers to forms
+          const PlatformRegisters = await platformRegister();
+          const LivestreamPlatform = await livestreamPlatform();
+          const TypeHasPlatforms = await typeHasPlatform();
+          const LivestreamType = await livestreamType();
+          const userSubmissions = await PlatformRegisters.findAll({
+            where: { user_id: user_id },
+            include: [
+              {
+                model: Forms,
+                include:{
+                    model:LivestreamPlatform,
+                }
+              },
+              {
+                model: FormFields,
+                include:{
+                    model:Field,
+                }
+              },
+            ],
+          });
+           let platform_id = null;
+           userSubmissions.map((v)=>{
+              platform_id = v.form.platform_id
+           })
+           const platformAndType = await TypeHasPlatforms.findAll({
+                where:{
+                    platform_id:platform_id
+                },
+                include:[
+                    {
+                        model:LivestreamType,
+                    },
+                    {
+                        model:LivestreamPlatform
+                    }
+                ],
+           });
+          return res.json(
+            {
+                userSubmissions,
+                platformAndType
+            });
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+          });
+        }
+      }
+      
+      
 }
 module.exports = new PlatformController();
