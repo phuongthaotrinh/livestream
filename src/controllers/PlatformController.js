@@ -22,7 +22,7 @@ class PlatformController{
             if(retrievePlatform){
                 liveStreamplatFormData = retrievePlatform;
             }
-            return res.json({
+            return res.status(200).json({
                 success:true,
                 data:{
                     liveStreamTypeData,
@@ -31,7 +31,7 @@ class PlatformController{
             })
         } catch (error) {
             console.log(error)
-            return res.json({
+            return res.status(500).json({
                 success:false,
                 message:"Something went wrong while processing"
             })
@@ -42,7 +42,7 @@ class PlatformController{
        try {
         const {name}= req.body;
         if(!name){
-            return res.json({
+            return res.status(403).json({
                 success:false,
                 message:"name is not allow to be empty"
             })
@@ -54,7 +54,7 @@ class PlatformController{
          }
         })
         if(checkExisting !== null){
-          return res.json({
+          return res.status(400).json({
              success:false,
              message:"This type has been registered. please skip it"
           })
@@ -64,19 +64,19 @@ class PlatformController{
         });
         const saveName = await build.save();
          if(saveName){
-             return res.json({
+             return res.status(201).json({
                  success:true,
                  message:"You have added a new type successfully"
              })
          }else{
-             return res.json({
+             return res.status(400).json({
                  success:false,
                  message:"Something went wrong"
              })
          }
        } catch (error) {
            console.log(error)
-           return res.json({
+           return res.status(500).json({
             success:false,
             message:"Something went wrong while processing"
         })
@@ -98,7 +98,7 @@ class PlatformController{
                 }
             })
             if(checkExisting !==null){
-              return res.json({
+              return res.status(400).json({
                  success:false,
                  message:"This platform has been registered. please skip it"
                 })
@@ -107,12 +107,12 @@ class PlatformController{
                     name:name
                    });
                     if(buildPlatForm){
-                        return res.json({
+                        return res.status(201).json({
                             success:true,
                             message:"You have added a new platform successfully"
                         })
                     }else{
-                        return res.json({
+                        return res.status(400).json({
                             success:false,
                             message:"Something went wrong"
                         })
@@ -120,7 +120,7 @@ class PlatformController{
             }
            } catch (error) {
                console.log(error)
-               return res.json({
+               return res.status(500).json({
                 success:false,
                 message:"Something went wrong while processing"
             })
@@ -166,7 +166,7 @@ class PlatformController{
                     const saveFormField = await buildFormField.save();
     
                     if (saveFormField) {
-                        return res.json({
+                        return res.status(201).json({
                             success: true,
                             message: "You have added a new field successfully"
                         });
@@ -174,7 +174,7 @@ class PlatformController{
                 }
             }
     
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: "Something went wrong while processing"
             });
@@ -189,11 +189,11 @@ class PlatformController{
     // create user submissions
     async createUserSubmissions(req,res) {
         try {
-          const {user_id,form_id,field_value,field_id} = req.body;
+          const {user_id,form_id,field_value,field_id,form_field_id} = req.body;
           const PlatformRegister = await platformRegister();
           const Field = await field();
           if(!user_id || !form_id || !field_value){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"One of the input field is empty"
             })
@@ -201,7 +201,8 @@ class PlatformController{
              
           const buildSubmission = PlatformRegister.build({
             user_id: user_id,
-            form_id: form_id
+            form_id: form_id,
+            form_field_id:form_field_id
           });
           const [affectedRows] = await Field.update({
             field_value:field_value
@@ -214,13 +215,13 @@ class PlatformController{
           const saveSubmission = await buildSubmission.save();
       
           if (saveSubmission && affectedRows > 0) {
-            return res.json({
+            return res.status(201).json({
               success: true,
               message: "Your info is saved successfully."
             });
           }
         } catch (error) {
-          console.error("Error in createUserSubmissions:", error);
+            console.log(error)
           return res.status(500).json({
             success: false,
             message: "Internal Server Error"
@@ -238,5 +239,66 @@ class PlatformController{
             console.log(error)
          }
     }
+      // create form 
+      async getForm(req, res) {
+        try {
+          const { user_id } = req.params;
+      
+          const Field = await field();
+          const FormFields = await formField();
+          const Forms = await formTemplate(); // Assuming formTemplate refers to forms
+          const PlatformRegisters = await platformRegister();
+          const LivestreamPlatform = await livestreamPlatform();
+          const TypeHasPlatforms = await typeHasPlatform();
+          const LivestreamType = await livestreamType();
+          const userSubmissions = await PlatformRegisters.findAll({
+            where: { user_id: user_id },
+            include: [
+              {
+                model: Forms,
+                include:{
+                    model:LivestreamPlatform,
+                }
+              },
+              {
+                model: FormFields,
+                include:{
+                    model:Field,
+                }
+              },
+            ],
+          });
+           let platform_id = null;
+           userSubmissions.map((v)=>{
+              platform_id = v.form.platform_id
+           })
+           const platformAndType = await TypeHasPlatforms.findAll({
+                where:{
+                    platform_id:platform_id
+                },
+                include:[
+                    {
+                        model:LivestreamType,
+                    },
+                    {
+                        model:LivestreamPlatform
+                    }
+                ],
+           });
+          return res.json(
+            {
+                userSubmissions,
+                platformAndType
+            });
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+          });
+        }
+      }
+      
+      
 }
 module.exports = new PlatformController();

@@ -6,29 +6,32 @@ const userHasRole = require('../Models/UserHasRole');
 const roleHasPermission = require('../Models/RoleHasPermission');
 class RoleAndPermissionController{
     // get all role 
-    getAllRole = async(req,res)=>{
+    getAllRole = async (req, res) => {
         try {
             const Role = await role();
             const allRole = await Role.findAll();
-            if(!allRole){
-                return res.json({
-                    success:false,
-                    message:"There is no roles yet"
-                })
+            
+            if (!allRole || allRole.length === 0) {
+                return res.status(404).json({
+                    success: false,
+                    message: "There are no roles yet",
+                });
             }
-            if(allRole){
-                res.json({
-                    success:true,
-                    data:allRole
-                })
-            }
+    
+            res.status(200).json({
+                success: true,
+                data: allRole || [],
+            });
+    
         } catch (error) {
-            return res.json({
-                success:false,
-                message:error
-            })
+            console.error("Error in getAllRole:", error);
+            res.status(500).json({
+                success: false,
+                message: "Internal Server Error",
+            });
         }
     }
+    
     // get user along with role 
     roleHasPer = async(req,res)=>{
         const Permission = await permission();
@@ -50,19 +53,12 @@ class RoleAndPermissionController{
                     attributes: ['id', 'name'],
                 }
             })
-            if(permissions){
-                return res.json({
-                    success:true,
-                    data:permissions
-                })
-            }else{
-                return res.json({
-                    success:true,
-                    data:[]
-                })
-            }
+            return res.status(200).json({
+                success:true,
+                data:permissions || []
+            })
         }else{
-            return res.json({
+            return res.status(404).json({
                 success:false,
                 message:"role is not found"
             })
@@ -87,19 +83,12 @@ class RoleAndPermissionController{
                 attributes:['id','name']
               }
           });
-            if(roles){
-             return res.json({
-                success:true,
-                data:roles
+            return res.status(200).json({
+            success:true,
+            data:roles || []
             })
-          }else{
-            return res.json({
-                success:false,
-                data:[]
-            })
-          }
        }else{
-         return res.json({
+         return res.status(404).json({
             success:false,
             message:"user not found"
          })
@@ -116,14 +105,12 @@ class RoleAndPermissionController{
                     message:"There is no roles yet"
                 })
             }
-            if(allPer){
-                res.json({
-                    success:true,
-                    data:allPer
-                })
-            }
+            return res.status(200).json({
+                success:true,
+                data:allPer || []
+             })
         } catch (error) {
-            return res.json({
+            return res.status(500).json({
                 success:false,
                 message:error
             })
@@ -134,7 +121,7 @@ class RoleAndPermissionController{
         try {
             const {name} = req.body;
             if(!name){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"Please input a role name"
                 })
@@ -147,7 +134,7 @@ class RoleAndPermissionController{
                 }
             });
             if(checkRole !== null){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"The role has been added please input another role"
                 })
@@ -157,18 +144,18 @@ class RoleAndPermissionController{
             })
             const saveRole = await roleBuild.save();
             if(saveRole){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"You have added a new role successfully"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"something went wrong while processing"
                 })
             }
         } catch (error) {
-            res.json({
+            res.status(500).json({
                 success:false,
                 message:error
             })
@@ -179,7 +166,7 @@ class RoleAndPermissionController{
         try {
             const {name} = req.body;
             if(!name){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"Please input a permission name"
                 })
@@ -191,8 +178,8 @@ class RoleAndPermissionController{
                     name:permissionName
                 }
             });
-            if(checkRole !== null){
-                return res.json({
+            if(checkRole){
+                return res.status(400).json({
                     success:false,
                     message:"The permission has been added please input another one"
                 })
@@ -202,18 +189,18 @@ class RoleAndPermissionController{
             })
             const savePermission = await permissionBuild.save();
             if(savePermission){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"You have added a new permission successfully"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"something went wrong while processing"
                 })
             }
         } catch (error) {
-            res.json({
+            res.status(500).json({
                 success:false,
                 message:error
             })
@@ -224,7 +211,7 @@ class RoleAndPermissionController{
        try {
         const {role_id,permission_id} = req.body;
         if(!role_id || !permission_id){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"role or permission is empty.please check again"
             })
@@ -237,7 +224,7 @@ class RoleAndPermissionController{
           }
          })
          if(checkExistence){
-             return res.json({
+             return res.status(400).json({
                  success:false,
                  message:"This permission has been assigned for this role please choose another one"
              })
@@ -248,19 +235,18 @@ class RoleAndPermissionController{
          })
          const addAssign = await buildAssign.save();
          if(addAssign){
-             return res.json({
+             return res.status(201).json({
                  success:true,
                  message:"Assign permission successfully"
              })
          }else{
-             return res.json({
+             return res.status(400).json({
                  success:false,
                  message:"something wrong happened while processing"
              })
          }
        } catch (error) {
-        console.log(error)
-          return res.json({
+          return res.status(500).json({
             success:false,
             message:error
           })
@@ -274,7 +260,7 @@ class RoleAndPermissionController{
         const Role = await role();
         const User = await user();
         if(!role_id || !user_id){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"role or user is being empty please check again"
             })
@@ -286,13 +272,13 @@ class RoleAndPermissionController{
         });
         const checkUser = await User.findByPk(user_id);
         if(!checkUser || !checkRole){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"user or role does not existed in database"
             })
         }
         if(checkUser.email === 'admin@gmail.com'){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"you don't have a permission to change role for this user"
             })
@@ -303,18 +289,21 @@ class RoleAndPermissionController{
         })
         const saveBuildSave = await buildSave.save();
         if(saveBuildSave){
-            return res.json({
+            return res.status(201).json({
                 success:true,
                 message:"role has assigned for this user successfully"
             })
         }else{
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"Something went wrong"
             })
         }
        } catch (error) {
-        console.log(error)
+            return res.status(400).json({
+                success:false,
+                message:"Something went wrong during processing"
+            })
        }
     }
     // remove role for user 
@@ -324,7 +313,7 @@ class RoleAndPermissionController{
             const Role = await role();
             const User = await user();
             if(!role_id || !user_id){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"role or user is being empty please check again"
                 })
@@ -336,13 +325,13 @@ class RoleAndPermissionController{
             });
             const checkUser = await User.findByPk(user_id);
             if(!checkUser || !checkRole){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"user or role does not existed in database"
                 })
             }
             if(checkUser.email === 'admin@gmail.com'){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"you don't have a permission to change role for this user"
                 })
@@ -357,19 +346,18 @@ class RoleAndPermissionController{
                 }
             })
             if(affectedRows > 0){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"role has been remove for this user successfully"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"sonething went wrong"
                 })
             }
        } catch (error) {
-          console.log(error)
-          return res.json({
+          return res.status(500).json({
             success:true,
             message:error
           })
@@ -381,7 +369,7 @@ class RoleAndPermissionController{
             const Role = await role();
             const User = await user();
             if(!role_id || !user_id){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"role or user is being empty please check again"
                 })
@@ -393,13 +381,13 @@ class RoleAndPermissionController{
             });
             const checkUser = await User.findByPk(user_id);
             if(!checkUser || !checkRole){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"user or role does not existed in database"
                 })
             }
             if(checkUser.email === 'admin@gmail.com'){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"you don't have a permission to change role for this user"
                 })
@@ -414,19 +402,18 @@ class RoleAndPermissionController{
                 }
             })
             if(affectedRows > 0){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"role has re-assigned for this user successfully"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"sonething went wrong"
                 })
             }
        } catch (error) {
-          console.log(error)
-          return res.json({
+          return res.status(500).json({
             success:true,
             message:error
           })

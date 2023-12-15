@@ -1,7 +1,6 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
-
 async function livestreamPlatform() {
   const sequelize = await connect();
   const LiveStreamPlatform = sequelize.define('livestream_platforms', {

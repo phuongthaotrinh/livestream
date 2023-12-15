@@ -42,14 +42,9 @@ class UserController{
         const User = await setup();
         const data = await User.findOne({ where: { id: id }});
         if(data){
-            res.json({
+            res.status(200).json({
                 success:true,
-                user:data
-            })
-        }else{
-            res.json({
-                success:false,
-                user:[]
+                user:data || []
             })
         }
     }
@@ -58,7 +53,7 @@ class UserController{
         const User = await setup();
         const {name,email,password,fullName} = req.body;
         if(!name || !email || !password || !fullName){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"one of your input is empty"
             })
@@ -74,10 +69,15 @@ class UserController{
               }
           });
           if(Edit){
-            res.json({
+            return res.status(201).json({
               success:true,
               message:"Record updated successfully!"
              })
+          }else{
+            return res.status(400).json({
+                success:false,
+                message:"something went wrong"
+            })
           }
       }
       // login method
@@ -91,13 +91,13 @@ class UserController{
             },
             });
             if(user.block === true || user.block === 1){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"your account has been blocked. please contact admin to solve it"
                 })
             }
             if (!user) {
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message: 'You have not signed up yet. please signs up first thanks.',
                 });
@@ -106,7 +106,7 @@ class UserController{
             const match = await bcrypt.compare(password, user.password);
         
             if (!match) {
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message: 'Invalid email or password',
                 });
@@ -118,7 +118,7 @@ class UserController{
                     secret,
                     { expiresIn: '24h' }
                     ); 
-                return res.json({
+                return res.status(201).json({
                     success: true,
                     token: token,
                     message:"you have loged in successfully"
@@ -126,7 +126,7 @@ class UserController{
             }
         } catch (error) {
             console.error(error);
-            return res.json({
+            return res.status(500).json({
                 success:false,
                 message: 'An error occurred while logging in',
             });
@@ -182,7 +182,7 @@ class UserController{
             })
            }
            if(password.length < 7){
-             return res.json({
+             return res.status(400).json({
                 success:false,
                 message:"Password should greater than 7 characters"
              })
@@ -191,7 +191,7 @@ class UserController{
         const saltRounds = 10;
         try {
          if(email === 'admin@gmail.com'){
-             return res.json({
+             return res.status(403).json({
                 success:false,
                 message:"you don't allow to create account with this email. please consider another one"
              })
@@ -221,20 +221,20 @@ class UserController{
                             { expiresIn: '24h' }
                         );
                         if(token){
-                            return res.json({
+                            return res.status(201).json({
                                 token:token,
                                 success:true,
                                 message: 'you have signed up successfully' 
                             });
                         }
                 }else{
-                    return res.json({
+                    return res.status(400).json({
                         success:false,
                         message:"Something went wrong while processing"
                     })
                 }
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"The email has been taken please use another one.thanks"
                 })
@@ -254,11 +254,14 @@ class UserController{
               id:id
             }
         }).then(()=>{
-            res.json({
+            res.status(201).json({
                 'message':"delete user successfully"
             })
         }).catch(err=>{
-            console.log(err)
+            return res.status(500).json({
+                success:false,
+                message:"something went wrong"
+            })
         })
     }
     async checkEmailAndName(req,res){
@@ -273,12 +276,12 @@ class UserController{
               }
         });
         if(!user){
-            return res.json({
+            return res.status(201).json({
                 status:false,
                 message:"Email or Name still available "
             })
         }else{
-           return res.json({
+           return res.status(400).json({
                 status:true,
                 message:"Email or Name has been taken . please choose another one"
             })
@@ -301,12 +304,12 @@ class UserController{
                 }
             })
             if(blockUser > 0){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"The user has been blocked"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"Something went wrong while processing"
                 })
@@ -331,12 +334,12 @@ class UserController{
                 }
             })
             if(blockUser > 0){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"The user has been unblocked"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"Something went wrong while processing"
                 })
@@ -370,12 +373,12 @@ class UserController{
             }
         })
         if(affectedRows > 0){
-            res.json({
+            res.status(201).json({
                 success:true,
                 message:"you have updated your account"
             })
         }else{
-            res.json({
+            res.status(400).json({
                 success:false,
                 message:"something went wrong while processing"
             })
@@ -406,9 +409,9 @@ class UserController{
         roleName = userHasRole.role.name; // Accessing Role through dot notation
       });
       if(roleName !== "manager" || !roleName){
-        return res.json({
+        return res.status(400).json({
             success:false,
-            message:"This user can not create a new user"
+            message:"something went ưởng ưhile processing"
         })
       }
       const checkuserGroup = await User.findOne({
@@ -420,13 +423,13 @@ class UserController{
           }
       })
       if(checkuserGroup){
-        return res.json({
+        return res.status(400).json({
             success:false,
             message:"This user has been registered once please choose another email and name"
         })
       }
        if(!name || !fullName || !email || !password){
-        return res.json({
+        return res.status(400).json({
             success:false,
             message:"Some of input fields are being empty plase check again"
         })
@@ -438,10 +441,9 @@ class UserController{
         password:password
        }
        const addNewUser = await this.addNewUser(data);
-       console.log("addNewUser",addNewUser)
        if(addNewUser && addNewUser.success === true){
             if(!addNewUser.user_id){
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"something went wrong plase try again"
                 })
@@ -452,18 +454,18 @@ class UserController{
             })
             const savebuild = await build.save();
             if(savebuild){
-                return res.json({
+                return res.status(201).json({
                     success:true,
                     message:"you have added a new member to your group"
                 })
             }else{
-                return res.json({
+                return res.status(400).json({
                     success:false,
                     message:"something went wrong"
                 })
             }
        }else{
-        return res.json({
+        return res.status(400).json({
             success:false,
             message:"Something went wrong during process"
         })
@@ -471,7 +473,7 @@ class UserController{
     }
     addNewUser = async (data)=>{
         if(!data){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"body is being empty please check again"
             })
@@ -483,7 +485,7 @@ class UserController{
         const saltRounds = 10;
         try {
          if(email === 'admin@gmail.com'){
-             return res.json({
+             return res.status(403).json({
                 success:false,
                 message:"you don't allow to create account with this email. please consider another one"
              })
@@ -520,7 +522,7 @@ class UserController{
        try {
         const {child_id,parent_id} = req.body;
         if(!child_id || !parent_id){
-            return res.json({
+            return res.status(400).json({
                 success:false,
                 message:"one of input fields are empty please check inputs"
             })
@@ -533,7 +535,7 @@ class UserController{
          }
         });
         if(!check){
-         return res.json({
+         return res.status(400).json({
              success:false,
              message:"Child or Parent does not exist or missing params. please check again"
          })
@@ -547,14 +549,14 @@ class UserController{
          }
         })
         if(affectedRows > 0){
-         return res.json({
+         return res.status(201).json({
              success:true,
              message:"User has been removed from the group"
          })
         }
        } catch (error) {
           console.log(error)
-          return res.json({
+          return res.status(500).json({
              success:false,
              message:error
           })
