@@ -17,7 +17,7 @@ app.use(
     }),
 );
 app.use(cors({
-    origin:['*'],
+    origin:'*',
     credentials:true,
     optionsSuccessStatus:200,
 }));
