@@ -18,6 +18,8 @@ app.use(
 );
 app.use(cors({
     origin:['*'],
+    credentials:true,
+    optionsSuccessStatus:200,
 }));
 route(app);
 app.use((err, req, res, next) => {
