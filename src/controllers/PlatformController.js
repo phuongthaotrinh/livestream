@@ -82,6 +82,7 @@ class PlatformController{
         })
        }
     }
+    // add live stream platforms 
     async addLiveStreamPlatform(req,res){
         try {
             const {name}= req.body;

@@ -20,6 +20,11 @@ async function slide() {
       allowNull:false,
       defaultValue:0
     },
+    status:{
+      type:DataTypes.BOOLEAN,
+      allowNull:true,
+      defaultValue:true
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true

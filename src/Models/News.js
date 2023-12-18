@@ -23,6 +23,11 @@ async function news() {
         type: DataTypes.STRING,
         allowNull: false
     },
+    status:{
+        type: DataTypes.BOOLEAN,
+        allowNull: true,
+        defaultValue:true
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true

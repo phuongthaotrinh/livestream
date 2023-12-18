@@ -16,6 +16,7 @@ const news = require('../Models/News');
 const slide = require('../Models/Slide');
 const { error } = require('console');
 class AdditionalController{
+    // add bulk slides 
     async addSlide(req, res) {
         try {
             upload(req, res, async function (err) {
@@ -62,7 +63,7 @@ class AdditionalController{
         }
     }
     
-    
+    // retrieve all slides 
      async getAllSlide(req,res){
         try {
             const Slide = await slide();
@@ -79,12 +80,15 @@ class AdditionalController{
             })
         }
      }
+     // add news
     async addNews(req,res){
            
     }
+    // get news
     async getNews(){
  
     }
+    // get newest news 
     async getNewestNews(){
 
     }
