@@ -4,6 +4,7 @@ const user = require('../Models/User');
 const roleHasPer = require('../Models/RoleHasPermission');
 const userHasRole = require('../Models/UserHasRole');
 const roleHasPermission = require('../Models/RoleHasPermission');
+const { Op } = require('sequelize');
 class RoleAndPermissionController{
     // get all role 
     getAllRole = async (req, res) => {
@@ -207,51 +208,68 @@ class RoleAndPermissionController{
         }
     }
     // assign role for permissions 
-    assignRoleForPermission = async(req,res)=>{
-       try {
-        const {role_id,permission_id} = req.body;
-        if(!role_id || !permission_id){
-            return res.status(400).json({
-                success:false,
-                message:"role or permission is empty.please check again"
-            })
-        }
-        const RoleHasPermission = await roleHasPermission();
-        const checkExistence = await RoleHasPermission.findOne({
-          where:{
-             role_id:role_id,
-             permission_id:permission_id
+    assignRoleForPermission = async (req, res) => {
+        try {
+          const RoleHasPermission = await roleHasPermission();
+      
+          const rolesAndPermissions = req.body.map(item => {
+            const role = item.roles;
+            const permissions = item.permissions.map(permission => permission.id);
+      
+            // Validate that permissions array is not empty or doesn't contain null values
+            if (!permissions || permissions.length === 0 || permissions.includes(null)) {
+              return res.status(400).json({
+                success: false,
+                message: 'Invalid permissions array in the request body',
+              });
+            }
+      
+            const roleId = role.id;
+      
+            return { role, permissions, roleId };
+          });
+      
+          const existingEntries = await RoleHasPermission.findAll({
+            where: {
+              [Op.or]: rolesAndPermissions.map(({ roleId, permissions }) => ({
+                role_id: roleId,
+                permission_id: permissions,
+              })),
+            },
+          });
+      
+          const existingEntriesSet = new Set(existingEntries.map(entry => `${entry.role_id}-${entry.permission_id}`));
+      
+          const entriesToCreate = rolesAndPermissions.filter(({ roleId, permissions }) => {
+            return !permissions.some(permissionId => existingEntriesSet.has(`${roleId}-${permissionId}`));
+          });
+      
+          if (entriesToCreate.length === 0) {
+            return res.status(409).json({
+              success: false,
+              message: 'All specified role and permission combinations already exist in RoleHasPermission table',
+            });
           }
-         })
-         if(checkExistence){
-             return res.status(400).json({
-                 success:false,
-                 message:"This permission has been assigned for this role please choose another one"
-             })
-         }
-         const buildAssign = RoleHasPermission.build({
-             role_id:role_id,
-             permission_id:permission_id
-         })
-         const addAssign = await buildAssign.save();
-         if(addAssign){
-             return res.status(201).json({
-                 success:true,
-                 message:"Assign permission successfully"
-             })
-         }else{
-             return res.status(400).json({
-                 success:false,
-                 message:"something wrong happened while processing"
-             })
-         }
-       } catch (error) {
+      
+          const save = await RoleHasPermission.bulkCreate(
+            entriesToCreate.flatMap(({ roleId, permissions }) => {
+              return permissions.map(permissionId => ({ role_id: roleId, permission_id: permissionId }));
+            })
+          );
+      
+          if (save) {
+            return res.status(201).json({
+              success: true,
+              message: 'Assign process completed',
+            });
+          }
+        } catch (error) {
           return res.status(500).json({
-            success:false,
-            message:error
-          })
-       }
-    }
+            success: false,
+            message: error.message,
+          });
+        }
+      };      
     // assign role for user 
     assignUserForRole = async(req,res)=>{
        try {
