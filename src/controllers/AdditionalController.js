@@ -67,7 +67,9 @@ class AdditionalController{
      async getAllSlide(req,res){
         try {
             const Slide = await slide();
-            const data = await Slide.findAll();
+            const data = await Slide.findAll({
+                order: [['createdAt', 'DESC']],
+            });
             return res.status(200).json({
                 success:true,
                 data:data || []
@@ -81,16 +83,104 @@ class AdditionalController{
         }
      }
      // add news
-    async addNews(req,res){
-           
+    async addNewsOrUpdate(req,res){
+       try {
+        upload(req, res, async function (err) {
+            if (err instanceof multer.MulterError) {
+                return res.status(400).json({
+                    success: false,
+                    message: err.message
+                });
+            } else if (err) {
+                return res.status(500).json({ error: err.message });
+            }
+            const {title,content,image_link,id} = req.body;
+            let fileNames = [];
+
+            if (req.file && !image_link) {
+                fileNames = req.files.map((file) => ({ fileName: file.filename }));
+            }else{
+                if(image_link && id){
+                    fileNames = image_link;
+                }
+            }
+           const News = await news();
+           if(!id){
+                const saveNews = await News.create({
+                    title:title,
+                    content:content,
+                    image_link:fileNames
+                });
+                if(saveNews){
+                    return res.status(201).json({
+                        success: true,
+                        message: 'News has added successfully'
+                    });
+                }else{
+                    return res.status(201).json({
+                        success: false,
+                        message: 'something went wrong'
+                    });
+                }
+           }else{
+                const [affectedRows] = await News.update({
+                    title:title,
+                    content:content,
+                    image_link:fileName
+                },{
+                    where:{
+                        id:id
+                    }
+                });
+                if(affectedRows > 1){
+                    return res.status(201).json({
+                        success: true,
+                        message: 'News has updated'
+                    });
+                }else{
+                    return res.status(201).json({
+                        success: false,
+                        message: 'something went wrong'
+                    });
+                }
+           }
+        });
+       } catch (error) {
+           console.log(error)
+            return res.status(500).json({
+            success: false,
+            message: 'something went wrong'
+        });
+       }
     }
     // get news
-    async getNews(){
- 
-    }
-    // get newest news 
-    async getNewestNews(){
-
+    async getNews(req,res){
+        try {
+            const {id} = req.body;
+            let data = null;
+            const News = await news();
+            if(!id){
+                data = await News.findAll({
+                    order: [['createdAt', 'DESC']],
+                });
+            }else{
+                data = await News.findOne({
+                    where:{
+                        id:id
+                    }
+                })
+            }
+           return res.status(200).json({
+            success:true,
+            data:data
+           })
+        } catch (error) {
+            console.log(error)
+            return res.status(200).json({
+                success:false,
+                data:[]
+            })
+        }
     }
 }
 module.exports = new AdditionalController();
