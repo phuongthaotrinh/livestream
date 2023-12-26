@@ -94,7 +94,7 @@ class AdditionalController{
             } else if (err) {
                 return res.status(500).json({ error: err.message });
             }
-            const {title,content,image_link,id} = req.body;
+            const {title,content,image_link,preview,id} = req.body;
             let fileNames = [];
 
             if (req.file && !image_link) {
@@ -109,6 +109,7 @@ class AdditionalController{
                 const saveNews = await News.create({
                     title:title,
                     content:content,
+                    preview:preview,
                     image_link:fileNames
                 });
                 if(saveNews){
@@ -126,7 +127,7 @@ class AdditionalController{
                 const [affectedRows] = await News.update({
                     title:title,
                     content:content,
-                    image_link:fileName
+                    image_link:fileNames
                 },{
                     where:{
                         id:id

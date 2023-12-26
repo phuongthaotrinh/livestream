@@ -19,6 +19,10 @@ async function news() {
         type: DataTypes.TEXT,
         allowNull: false
     },
+    preview: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     image_link:{
         type: DataTypes.STRING,
         allowNull: false
