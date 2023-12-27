@@ -3,6 +3,7 @@ const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
 const role = require('./Role');
 const user = require('./User');
+const group = require('./Group');
 async function userGroup() {
   const sequelize = await connect();
   const UserGroup = sequelize.define('user_group', {
@@ -11,6 +12,10 @@ async function userGroup() {
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
+    },
+    parent_id:{
+      type:DataTypes.INTEGER,
+      allowNull:false
     },
     child_id:{
         type:DataTypes.INTEGER,
@@ -40,7 +45,10 @@ async function userGroup() {
   });
   // const Role = await role();
   const User = await user();
+  const Group = await group();
   UserGroup.belongsTo(User, { foreignKey: 'child_id' });
+  UserGroup.belongsTo(User, { foreignKey: 'parent_id' });
+  UserGroup.belongsTo(Group,{foreignKey: 'group_id'});
   await UserGroup.sync({ force: false });
   return UserGroup;
 }
