@@ -6,4 +6,6 @@ router.post('/add-bulk-slide',TokenCheckMiddleware,additional_controller.addSlid
 router.get('/get-all-slide',TokenCheckMiddleware,additional_controller.getAllSlide);
 router.get('/get-all-news',TokenCheckMiddleware,additional_controller.getNews);
 router.post('/add-or-update-news',TokenCheckMiddleware,additional_controller.addNewsOrUpdate);
+router.post('/add-or-uodate-group',TokenCheckMiddleware,additional_controller.addNewGroup);
+router.get('/get-group',TokenCheckMiddleware,additional_controller.getAllOrByIdGroup);
 module.exports = router;

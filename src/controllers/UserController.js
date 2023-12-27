@@ -386,7 +386,7 @@ class UserController{
     }
     // add user to group
     addNewChild = async (req,res)=>{
-       const {name,fullName,email,password,user_id} = req.body;
+       const {name,fullName,email,password,user_id,group_id} = req.body;
        const UserGroup = await userGroup();
        const User = await setup();
        const Role = await role();
@@ -449,7 +449,7 @@ class UserController{
                 })
             }
             const build = UserGroup.build({
-                parent_id:user_id,
+                group_id:group_id,
                 child_id:addNewUser.user_id
             })
             const savebuild = await build.save();
