@@ -3,6 +3,7 @@ const userGroup = require('../Models/UserGroup');
 const role = require('../Models/Role');
 const roleHasPermission = require('../Models/RoleHasPermission');
 const permission = require('../Models/Permission');
+const group = require('../Models/Group');
 const path = require('path');
 const moment = require('moment');
 const bcrypt = require('bcrypt');
@@ -10,7 +11,7 @@ const jwt = require('jsonwebtoken');
 const shortid = require('shortid');
 const multer = require('multer');
 const userHasRole = require('../Models/UserHasRole');
-const { Op } = require('sequelize');
+const { Op, Sequelize } = require('sequelize');
 const secret =process.env.SECRET;
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -386,7 +387,7 @@ class UserController{
     }
     // add user to group
     addNewChild = async (req,res)=>{
-       const {name,fullName,email,password,user_id,group_id} = req.body;
+       const {name,fullName,email,password,user_id,group_id,parent_id} = req.body;
        const UserGroup = await userGroup();
        const User = await setup();
        const Role = await role();
@@ -450,7 +451,8 @@ class UserController{
             }
             const build = UserGroup.build({
                 group_id:group_id,
-                child_id:addNewUser.user_id
+                child_id:addNewUser.user_id,
+                parent_id:parent_id
             })
             const savebuild = await build.save();
             if(savebuild){
@@ -566,12 +568,11 @@ class UserController{
     async getAllMemberInGroup(req, res) {
         try {
             const { user_id } = req.params;
-    
-            // Assume these functions return promises
             const UserHasRole = await userHasRole();
             const UserGroup = await userGroup();
             const Role = await role();
             const User = await setup();
+            const Group = await group();
     
             const checkUserRole = await UserHasRole.findOne({
                 where: { user_id: user_id },
@@ -581,17 +582,40 @@ class UserController{
                 }
             });
     
-            if (checkUserRole.role.name === 'manager') {
-                const userGroupData = await UserGroup.findAll({
-                    where: { user_id: user_id },
-                    include: {
-                        model: User
-                    }
+            if (checkUserRole && checkUserRole.role.name === 'manager') {
+                const group = await Group.findAll({
+                    include: [
+                      {
+                        model: User,
+                      }
+                    ],
+                  });
+                  let childId = [];
+                const userGroup = await UserGroup.findAll({
+                    include: [
+                        {
+                          model: User,
+                          where:{
+                            id:user_id
+                          }
+                        }
+                      ],
                 });
-    
+                userGroup?.map((value)=>{
+                    childId.push(value.child_id)
+                })
+                const ChildData = await User.findAll({
+                    where:{
+                        id: {
+                            [Sequelize.Op.in]: childId,
+                        },
+                    }
+                })
                 return res.status(200).json({
                     success: true,
-                    data: userGroupData || []
+                    group: group ? group : [],
+                    userGroup:userGroup ? userGroup : [],
+                    childData:ChildData ? ChildData : []
                 });
             } else {
                 // Handle other roles if needed
@@ -608,6 +632,7 @@ class UserController{
             });
         }
     }
+    
     
 } 
 module.exports = new UserController();

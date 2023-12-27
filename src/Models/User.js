@@ -34,6 +34,18 @@ async function user() {
       allowNull: true,
       defaultValue: false,
     },
+    images:{
+      type: DataTypes.STRING,
+      allowNull: true
+    },
+    phoneNumber:{
+      type:DataTypes.STRING,
+      allowNull:true
+    },
+    address:{
+     type:DataTypes.STRING,
+     allowNull:true
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true
