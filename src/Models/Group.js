@@ -1,29 +1,28 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
-const role = require('./Role');
-const user = require('./User');
-async function userGroup() {
+const user = require('../Models/User');
+async function group() {
   const sequelize = await connect();
-  const UserGroup = sequelize.define('user_group', {
+  const Group  = sequelize.define('groups', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
     },
-    child_id:{
-        type:DataTypes.INTEGER,
-        allowNull:false
+    name:{
+       type:DataTypes.STRING,
+       allowNull:false,
     },
-    group_id:{
+    user_id:{
       type:DataTypes.INTEGER,
-      allowNull:false
+      allowNull:false,
     },
     status:{
-        type:DataTypes.STRING,
-        allowNull:true,
-        defaultValue:"on"
+      type:DataTypes.STRING,
+      allowNull:true,
+      defaultValue:"on"
     },
     createdAt: {
       type: DataTypes.DATE,
@@ -33,16 +32,15 @@ async function userGroup() {
       type: DataTypes.DATE,
       allowNull: true
     }
-  }, {
+  },{
     timestamps: true,
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  // const Role = await role();
   const User = await user();
-  UserGroup.belongsTo(User, { foreignKey: 'child_id' });
-  await UserGroup.sync({ force: false });
-  return UserGroup;
+  Group.belongsTo(User, { foreignKey: 'user_id' });
+  await Group.sync({ force: false });
+  return Group;
 }
 
-module.exports = userGroup;
+module.exports = group;

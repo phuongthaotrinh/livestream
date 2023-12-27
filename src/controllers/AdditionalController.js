@@ -14,6 +14,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage }).array('images',5);
 const news = require('../Models/News');
 const slide = require('../Models/Slide');
+const group = require('../Models/Group');
 const { error } = require('console');
 class AdditionalController{
     // add bulk slides 
@@ -178,6 +179,95 @@ class AdditionalController{
         } catch (error) {
             console.log(error)
             return res.status(200).json({
+                success:false,
+                data:[]
+            })
+        }
+    }
+    // add or update group info
+    async addNewGroup(req,res){
+        try {
+            const {id,name,user_id,status} = req.body;
+            const Group = await group();
+            const checkBefore = await Group.findOne({
+                where:{
+                    name:name,
+                    user_id:user_id
+                }
+            });
+            let save = null;
+            if(id && status){
+                const [affectedRows] = await Group.update({
+                    status:status
+                },{
+                    where:{
+                        id:id
+                    }
+                });
+                if(affectedRows > 0){
+                    return res.status(201).json({
+                        success:true,
+                        message:"Update group successfully"
+                    })
+                }
+            }
+            if(checkBefore !== null){
+                const [affectedRows] = await Group.update({
+                    name:name,
+                    user_id:user_id
+                },{
+                    where:{
+                        id:checkBefore.id
+                    }
+                });
+                if(affectedRows > 0){
+                    return res.status(201).json({
+                       success:true,
+                       message:"Action successfully done"
+                    })
+                }
+            }else{
+                save = await Group.create({
+                    name:name,
+                    user_id:user_id
+                })
+                if(save){
+                    return res.status(201).json({
+                        success:true,
+                        message:"Group created successfully"
+                    })
+                }
+            }
+        } catch (error) {
+             console.log(error)
+             return res.status(500).json({
+                success:false,
+                message:"something went wrong"
+             })
+        }
+    }
+    // get all group or by id 
+    async getAllOrByIdGroup(req,res){
+        try {
+            const {id}= req.params;
+            const Group = await group();
+            let data = []
+            if(id){
+               data = await Group.findOne({
+                    where:{
+                        id:id
+                    }
+               });
+            }else{
+                data = await Group.findAll();
+            }
+            return res.status(200).json({
+                success:true,
+                data:data
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({
                 success:false,
                 data:[]
             })
