@@ -51,11 +51,12 @@ async function user() {
     updatedAt: 'updatedAt',
   });
   const User = await users();
-  const FomrField = await formField();
+  const FormField = await formField();
   const FormTemplates = await formTemplate();
+  User.hasMany(PlatformRegister, { foreignKey: 'user_id' });
   PlatformRegister.belongsTo(User,{foreignKey:'user_id'});
   PlatformRegister.belongsTo(FormTemplates,{foreignKey:'form_id'});
-  PlatformRegister.belongsTo(FomrField,{foreignKey:'form_field_id'})
+  PlatformRegister.belongsTo(FormField,{foreignKey:'form_field_id'})
   await PlatformRegister.sync({ force: false });
   return PlatformRegister;
 }
