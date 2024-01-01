@@ -277,7 +277,7 @@ class PlatformController{
           const { user_id } = req.params;
           const Field = await field();
           const FormFields = await formField();
-          const Forms = await formTemplate(); // Assuming formTemplate refers to forms
+          const Forms = await formTemplate(); 
           const PlatformRegisters = await platformRegister();
           const LivestreamPlatform = await livestreamPlatform();
           const TypeHasPlatforms = await typeHasPlatform();
@@ -361,5 +361,7 @@ class PlatformController{
              })
          }
       }
+      // get registered detail and result
+
 }
 module.exports = new PlatformController();
