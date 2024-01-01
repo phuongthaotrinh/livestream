@@ -32,6 +32,11 @@ async function user() {
       allowNull:true,
       defaultValue:"active"
     },
+    additional_status:{
+      type:DataTypes.STRING,
+      allowNull:true,
+      defaultValue:"pending"
+    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true
