@@ -282,7 +282,7 @@ class PlatformController{
           const LivestreamPlatform = await livestreamPlatform();
           const TypeHasPlatforms = await typeHasPlatform();
           const LivestreamType = await livestreamType();
-          const userSubmissions = await PlatformRegisters.findAll({
+          const userSubmissions = await PlatformRegisters.findOne({
             where: { user_id: user_id },
             include: [
               {
@@ -299,10 +299,10 @@ class PlatformController{
               },
             ],
           });
-           let platform_id = null;
-           userSubmissions.map((v)=>{
-              platform_id = v.form.platform_id
-           })
+           let platform_id =  userSubmissions.form.platform_id;
+        //    userSubmissions.map((v)=>{
+        //       platform_id = v.form.platform_id
+        //    })
            const platformAndType = await TypeHasPlatforms.findAll({
                 where:{
                     platform_id:platform_id
@@ -362,6 +362,59 @@ class PlatformController{
          }
       }
       // get registered detail and result
-
+     async getRegisteredDetailAndResult(req,res){
+         try {
+            const { user_id } = req.params;
+            const Field = await field();
+            const FormFields = await formField();
+            const Forms = await formTemplate(); 
+            const PlatformRegisters = await platformRegister();
+            const LivestreamPlatform = await livestreamPlatform();
+            const TypeHasPlatforms = await typeHasPlatform();
+            const LivestreamType = await livestreamType();
+            const User = await user();
+            const userSubmissions = await PlatformRegisters.findOne({
+              where: { user_id: user_id },
+              include: [
+                {
+                  model: Forms,
+                  include:{
+                      model:LivestreamPlatform,
+                  }
+                },
+                {
+                  model: FormFields,
+                  include:{
+                      model:Field,
+                  }
+                },
+                {
+                    model:User
+                }
+              ]
+            });
+             let platform_id = userSubmissions.form.platform_id;
+             const platformAndType = await TypeHasPlatforms.findAll({
+                  where:{
+                      platform_id:platform_id
+                  },
+                  include:[
+                      {
+                          model:LivestreamType,
+                      },
+                      {
+                          model:LivestreamPlatform
+                      }
+                  ],
+             });
+            return res.json(
+              {
+                  userSubmissions,
+                  platformAndType
+              });
+         } catch (error) {
+             
+         }
+     }
 }
 module.exports = new PlatformController();

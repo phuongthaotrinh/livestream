@@ -135,117 +135,169 @@ class UserController{
     }
 
     // get user role and permissions 
-     getUserRoleAndPermissions = async(userId)=>{
+    getUserRoleAndPermissions = async(userId)=>{
+    try {
+        const UserHasRole = await userHasRole();
+        const RoleHasPermission = await roleHasPermission();
+        const Role = await role();
+        const Permission = await permission();
+        const userRoleInfo = await UserHasRole.findAll({
+        where: { user_id: userId},
+        include: [Role],
+        });
+    
+        if (userRoleInfo) {
+        const {user_id, role } = userRoleInfo;
+        if(role){
+            const permissionDatas = await RoleHasPermission.findAll({
+                where:{
+                    role_id:role.dataValues.id
+                },
+                include:{
+                    model:Permission,
+                    attributes: ['id', 'name'],
+                }
+            })
+            if(permissionDatas){
+                let allPermission = null;
+                permissionDatas.forEach((e)=>{
+                        allPermission = e.dataValues.permission;    
+                })
+                return {role:role,permission:allPermission}
+            }
+        }
+        } else {
+        return {}
+        }
+    } catch (error) {
+        return {}
+    }
+    }
+    async getUserRoleAndPermissionsBelongToUser(req, res) {
         try {
+          const { user_id } = req.params;
           const UserHasRole = await userHasRole();
           const RoleHasPermission = await roleHasPermission();
           const Role = await role();
           const Permission = await permission();
-          const userRoleInfo = await UserHasRole.findOne({
-            where: { user_id: userId},
+          const userRoleInfo = await UserHasRole.findAll({
+            where: { user_id: user_id },
             include: [Role],
           });
       
-          if (userRoleInfo) {
-            const {user_id, role } = userRoleInfo;
-            if(role){
-                const permissionDatas = await RoleHasPermission.findAll({
-                    where:{
-                        role_id:role.dataValues.id
-                    },
-                    include:{
-                        model:Permission,
-                        attributes: ['id', 'name'],
-                    }
-                })
-                if(permissionDatas){
-                    let allPermission = null;
-                    permissionDatas.forEach((e)=>{
-                         allPermission = e.dataValues.permission;    
-                    })
-                    return {role:role,permission:allPermission}
-                }
+          if (userRoleInfo && userRoleInfo.length > 0) {
+            const { user_id, role } = userRoleInfo[0];
+      
+            if (role) {
+              const permissionDatas = await RoleHasPermission.findAll({
+                where: {
+                  role_id: role.id, // Assuming `id` is the primary key of the Role model
+                },
+                include: {
+                  model: Permission,
+                  attributes: ['id', 'name'],
+                },
+              });
+      
+              const allPermission = permissionDatas.map((e) => e.Permission);
+      
+              return res.status(200).json({
+                role: role,
+                permission: allPermission,
+              });
+            } else {
+              return res.status(200).json({
+                role: null, // Return null when no role is found
+                permission: [],
+              });
             }
           } else {
-            return {}
+            return res.status(400).json({
+              success: false,
+              message: "No user roles were found",
+            });
           }
         } catch (error) {
-          return {}
+          console.error(error);
+          return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+          });
         }
       }
-
-     signup = async (req,res)=>{
-        const { name,fullName, email, password} = req.body;
-        if(!name || !fullName || !email || !password){
-            return res.json({
-                success:false,
-                message:"Some of input fields are being empty plase check again"
+      
+    signup = async (req,res)=>{
+    const { name,fullName, email, password} = req.body;
+    if(!name || !fullName || !email || !password){
+        return res.json({
+            success:false,
+            message:"Some of input fields are being empty plase check again"
+        })
+        }
+        if(password.length < 7){
+            return res.status(400).json({
+            success:false,
+            message:"Password should greater than 7 characters"
             })
-           }
-           if(password.length < 7){
-             return res.status(400).json({
-                success:false,
-                message:"Password should greater than 7 characters"
-             })
-           }
-        const bcryptPass = password;
-        const saltRounds = 10;
-        try {
-         if(email === 'admin@gmail.com'){
-             return res.status(403).json({
-                success:false,
-                message:"you don't allow to create account with this email. please consider another one"
-             })
-         }
-          const afterhashPass = await bcrypt.hash(bcryptPass, saltRounds);
-          const User = await setup();
-          const user = await User.findOne({
-            where: {
-                email:email,
-                name:name
-            },
+        }
+    const bcryptPass = password;
+    const saltRounds = 10;
+    try {
+        if(email === 'admin@gmail.com'){
+            return res.status(403).json({
+            success:false,
+            message:"you don't allow to create account with this email. please consider another one"
+            })
+        }
+        const afterhashPass = await bcrypt.hash(bcryptPass, saltRounds);
+        const User = await setup();
+        const user = await User.findOne({
+        where: {
+            email:email,
+            name:name
+        },
+        });
+        if(!user){
+            const build = User.build({
+                name: name,
+                fullName: fullName,
+                email: email,
+                password: afterhashPass
             });
-            if(!user){
-                const build = User.build({
-                    name: name,
-                    fullName: fullName,
-                    email: email,
-                    password: afterhashPass
-                });
-            
-                const newUser = await build.save();
-                    if(newUser){
-                        const dataValues = newUser.dataValues;
-                        const token = jwt.sign(
-                            { user: { id: dataValues.id, name: dataValues.name,fullName:dataValues.fullName, email: dataValues.email,role:"user",permissions:"" } },
-                            secret,
-                            { expiresIn: '24h' }
-                        );
-                        if(token){
-                            return res.status(201).json({
-                                token:token,
-                                success:true,
-                                message: 'you have signed up successfully' 
-                            });
-                        }
-                }else{
-                    return res.status(400).json({
-                        success:false,
-                        message:"Something went wrong while processing"
-                    })
-                }
+        
+            const newUser = await build.save();
+                if(newUser){
+                    const dataValues = newUser.dataValues;
+                    const token = jwt.sign(
+                        { user: { id: dataValues.id, name: dataValues.name,fullName:dataValues.fullName, email: dataValues.email,role:"user",permissions:"" } },
+                        secret,
+                        { expiresIn: '24h' }
+                    );
+                    if(token){
+                        return res.status(201).json({
+                            token:token,
+                            success:true,
+                            message: 'you have signed up successfully' 
+                        });
+                    }
             }else{
                 return res.status(400).json({
                     success:false,
-                    message:"The email has been taken please use another one.thanks"
+                    message:"Something went wrong while processing"
                 })
             }
-        } catch (error) {
-          console.log('Error while sign up', error);
-          return res.status(500).json({
-            success:false,
-            message: 'Internal server error' });
+        }else{
+            return res.status(400).json({
+                success:false,
+                message:"The email has been taken please use another one.thanks"
+            })
         }
+    } catch (error) {
+        console.log('Error while sign up', error);
+        return res.status(500).json({
+        success:false,
+        message: 'Internal server error' });
+    }
     }
     async deleteUser(req,res){
         const User = await setup();
@@ -405,11 +457,13 @@ class UserController{
           },
         ],
       });
-      let roleName = "";
+      let roleName = false;
       userHasRolesWithAssociations.forEach((userHasRole) => {
-        roleName = userHasRole.role.name; // Accessing Role through dot notation
+          if(userHasRole.role.name === 'manager'){
+            roleName = true
+          }
       });
-      if(roleName !== "manager" || !roleName){
+      if(roleName === false){
         return res.status(400).json({
             success:false,
             message:"You don't have permission to add a new member"
