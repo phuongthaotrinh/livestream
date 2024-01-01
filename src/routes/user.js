@@ -26,5 +26,5 @@ router.post("/remove-member",TokenCheckMiddleware,user_controller.removeMember);
 // get all member in group 
 router.get('/get-all-member-in-group/:user_id/:group_id',TokenCheckMiddleware,user_controller.getAllMemberInGroup);
 //get-all-group-belong-to-current-user
-router.get('/get-all-group-belong-to-current-user',TokenCheckMiddleware,user_controller.getBelongGroup);
+router.get('/get-all-group-belong-to-current-user/:user_id',TokenCheckMiddleware,user_controller.getBelongGroup);
 module.exports = router;
