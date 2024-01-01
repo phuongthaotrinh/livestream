@@ -387,7 +387,7 @@ class UserController{
     }
     // add user to group
     addNewChild = async (req,res)=>{
-       const {name,fullName,email,password,user_id,group_id,parent_id} = req.body;
+       const {user_id,group_id,parent_id} = req.body;
        const UserGroup = await userGroup();
        const User = await setup();
        const Role = await role();
@@ -435,43 +435,30 @@ class UserController{
             message:"Some of input fields are being empty plase check again"
         })
        }
-       const data = {
-        name:name,
-        fullName:fullName,
-        email:email,
-        password:password
-       }
-       const addNewUser = await this.addNewUser(data);
-       if(addNewUser && addNewUser.success === true){
-            if(!addNewUser.user_id){
-                return res.status(400).json({
-                    success:false,
-                    message:"something went wrong plase try again"
-                })
-            }
-            const build = UserGroup.build({
-                group_id:group_id,
-                child_id:addNewUser.user_id,
-                parent_id:parent_id
-            })
-            const savebuild = await build.save();
-            if(savebuild){
-                return res.status(201).json({
-                    success:true,
-                    message:"you have added a new member to your group"
-                })
-            }else{
-                return res.status(400).json({
-                    success:false,
-                    message:"something went wrong"
-                })
-            }
-       }else{
-        return res.status(400).json({
-            success:false,
-            message:"Something went wrong during process"
+        //    const data = {
+        //     name:name,
+        //     fullName:fullName,
+        //     email:email,
+        //     password:password
+        //    }
+        //    const addNewUser = await this.addNewUser(data);
+        const build = UserGroup.build({
+            group_id:group_id,
+            child_id:addNewUser.user_id,
+            parent_id:parent_id
         })
-       }
+        const savebuild = await build.save();
+        if(savebuild){
+            return res.status(201).json({
+                success:true,
+                message:"you have added a new member to your group"
+            })
+        }else{
+            return res.status(400).json({
+                success:false,
+                message:"something went wrong"
+            })
+        }
     }
     addNewUser = async (data)=>{
         if(!data){
@@ -567,7 +554,7 @@ class UserController{
     // get all member in group 
     async getAllMemberInGroup(req, res) {
         try {
-            const { user_id } = req.params;
+            const { user_id,group_id } = req.params;
             const UserHasRole = await userHasRole();
             const UserGroup = await userGroup();
             const Role = await role();
@@ -589,17 +576,22 @@ class UserController{
                         model: User,
                       }
                     ],
+                    where:{
+                        user_id:user_id
+                    }
                   });
                   let childId = [];
                 const userGroup = await UserGroup.findAll({
                     include: [
                         {
                           model: User,
-                          where:{
-                            id:user_id
-                          }
                         }
                       ],
+                    where:{
+                        status:'on',
+                        group_id:group_id,
+                        parent_id:user_id
+                    }
                 });
                 userGroup?.map((value)=>{
                     childId.push(value.child_id)
@@ -633,6 +625,26 @@ class UserController{
         }
     }
     
-    
+   // get all group users are in
+   async getBelongGroup(req,res){
+      try {
+         const {user_id} = req.params;
+         const Group = await group();
+         const data = await Group.findAll({
+            where:{
+                user_id:user_id
+            }
+         });
+         return res.status(200).json({
+            success:true,
+            data:data ? data:[]
+         })
+      } catch (error) {
+          return res.status(500).json({
+             success:false,
+             message:"Something went wrong while processing"
+          })
+      }
+   }
 } 
 module.exports = new UserController();

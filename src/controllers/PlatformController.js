@@ -329,5 +329,37 @@ class PlatformController{
           });
         }
       }
+
+      // admin approve register platform form
+      async approveRegisteredPlatform(req,res){
+         try {
+             const {user_id,form_id,status}= req.body;
+             const PlatformRegisters = await platformRegister();
+             const [affectedRows] = await PlatformRegisters.update({
+                additional_status:status
+             },{
+                where:{
+                    user_id:user_id,
+                    form_id:form_id
+                }
+             })
+             if(affectedRows > 0){
+                return res.status(201).json({
+                    success:true,
+                    message:"You have approved it"
+                })
+             }else{
+                return res.status(400).json({
+                    success:false,
+                    message:"Somthing went wrong"
+                })
+             }
+         } catch (error) {
+             return res.status(500).json({
+                success:false,
+                message:"Somthing went wrong while processing"
+             })
+         }
+      }
 }
 module.exports = new PlatformController();
