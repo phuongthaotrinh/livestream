@@ -9,4 +9,5 @@ router.post('/add-field',TokenCheckMiddleware,platform_controller.addField);
 router.post('/create-new-submiss',TokenCheckMiddleware,platform_controller.createUserSubmissions);
 router.post('/add-more-type-into-platform',TokenCheckMiddleware,platform_controller.addMoreType);
 router.get('/get-form/:user_id',TokenCheckMiddleware,platform_controller.getForm);
+router.post('/approve-registered-platform',TokenCheckMiddleware,platform_controller.approveRegisteredPlatform);
 module.exports = router;

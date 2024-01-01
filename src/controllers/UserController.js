@@ -387,7 +387,7 @@ class UserController{
     }
     // add user to group
     addNewChild = async (req,res)=>{
-       const {user_id,group_id,parent_id} = req.body;
+       const {child_id,group_id,parent_id} = req.body;
        const UserGroup = await userGroup();
        const User = await setup();
        const Role = await role();
@@ -400,7 +400,7 @@ class UserController{
           {
             model: User,
             where: {
-                id:user_id
+                id:parent_id
             },
           },
         ],
@@ -412,29 +412,29 @@ class UserController{
       if(roleName !== "manager" || !roleName){
         return res.status(400).json({
             success:false,
-            message:"something went ưởng ưhile processing"
+            message:"You don't have permission to add a new member"
         })
       }
-      const checkuserGroup = await User.findOne({
-        where: {
-            [Op.or]: [
-              { name: name },
-              { email:email},
-            ],
-          }
-      })
-      if(checkuserGroup){
-        return res.status(400).json({
-            success:false,
-            message:"This user has been registered once please choose another email and name"
-        })
-      }
-       if(!name || !fullName || !email || !password){
-        return res.status(400).json({
-            success:false,
-            message:"Some of input fields are being empty plase check again"
-        })
-       }
+    //   const checkuserGroup = await User.findOne({
+    //     where: {
+    //         [Op.or]: [
+    //           { name: name },
+    //           { email:email},
+    //         ],
+    //       }
+    //   })
+    //   if(checkuserGroup){
+    //     return res.status(400).json({
+    //         success:false,
+    //         message:"This user has been registered once please choose another email and name"
+    //     })
+    //   }
+    //    if(!name || !fullName || !email || !password){
+    //     return res.status(400).json({
+    //         success:false,
+    //         message:"Some of input fields are being empty plase check again"
+    //     })
+    //    }
         //    const data = {
         //     name:name,
         //     fullName:fullName,
@@ -444,7 +444,7 @@ class UserController{
         //    const addNewUser = await this.addNewUser(data);
         const build = UserGroup.build({
             group_id:group_id,
-            child_id:addNewUser.user_id,
+            child_id:child_id,
             parent_id:parent_id
         })
         const savebuild = await build.save();
