@@ -114,7 +114,7 @@ class UserController{
                 });
             }
             const roleAndPermission = await this.getUserRoleAndPermissions(user.id);
-            console.log(roleAndPermission);
+            console.log("roleAndPermission",roleAndPermission)
             if(roleAndPermission){
                 const token = jwt.sign(
                     { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email,roleAndPermission } },
@@ -143,37 +143,57 @@ class UserController{
             const RoleHasPermission = await roleHasPermission();
             const Role = await role();
             const Permission = await permission();
-    
+            const collectRoleId = [];
+            let allPermission = [];
+            let roles = [];
             const userRoleInfo = await UserHasRole.findAll({
                 where: {
                     user_id: userId,
                     status: 'on'
                 },
-                include: {
-                    model: Role
-                }
+                attributes: ['role_id']
             });
             if (userRoleInfo && userRoleInfo.length > 0) {
-                const { user_id, role } = userRoleInfo[0].dataValues;
-                if (role) {
+                collectRoleId.push(...userRoleInfo.map((v) => v.role_id));
+               const collectPermissionId = [];
+                if (collectRoleId.length > 0) {
+                    roles = await Role.findAll({
+                              id: {
+                                    [Op.in]: collectRoleId
+                                }
+                        });
                     const permissionDatas = await RoleHasPermission.findAll({
                         where: {
-                            role_id: role.dataValues.id
+                            status: 'on',
+                            role_id: {
+                                [Op.in]: collectRoleId
+                            }
                         },
-                        include: {
-                            model: Permission,
-                            attributes: ['id', 'name'],
-                        }
+                        attributes:['permission_id']
                     });
-    
                     if (permissionDatas && permissionDatas.length > 0) {
-                        const allPermission = permissionDatas.map(e => e.dataValues.permission);
-                        return { role: role.dataValues, permission: allPermission };
+                       
+                        collectPermissionId.push(...permissionDatas.map((v)=>v.permission_id));
+                        if(collectPermissionId.length > 0){
+                            allPermission = await Permission.findAll({
+                                where: {
+                                    id: {
+                                        [Op.in]: collectPermissionId
+                                    }
+                                },
+                                attributes: ['name']
+                            });
+                        }
                     }
+                }else{
+                    roles = [];
+                    allPermission = []
                 }
             } else {
-                return { role: [], permission: [] };
+                roles = [];
+                allPermission = []
             }
+            return { roles: roles, permissions:allPermission };
         } catch (error) {
             console.error(error);
             return { role: [], permission: [] };
