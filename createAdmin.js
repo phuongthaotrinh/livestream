@@ -24,7 +24,7 @@ const { Sequelize } = require('sequelize');
         const buildUser = User.build({
             name:"admin",
             fullName:"Admin account",
-            email:"amin@gmail.com",
+            email:"admin@gmail.com",
             password:afterhashPass
         })
         await buildUser.save();

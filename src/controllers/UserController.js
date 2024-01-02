@@ -91,6 +91,7 @@ class UserController{
                 email: email
             },
             });
+            console.log(user.block)
             if(user.block === true || user.block === 1){
                 return res.status(400).json({
                     success:false,
@@ -105,7 +106,7 @@ class UserController{
             }
         
             const match = await bcrypt.compare(password, user.password);
-        
+             console.log(match)
             if (!match) {
                 return res.status(400).json({
                     success:false,
@@ -113,6 +114,7 @@ class UserController{
                 });
             }
             const roleAndPermission = await this.getUserRoleAndPermissions(user.id);
+            console.log(roleAndPermission);
             if(roleAndPermission){
                 const token = jwt.sign(
                     { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email,roleAndPermission } },
@@ -135,44 +137,50 @@ class UserController{
     }
 
     // get user role and permissions 
-    getUserRoleAndPermissions = async(userId)=>{
-    try {
-        const UserHasRole = await userHasRole();
-        const RoleHasPermission = await roleHasPermission();
-        const Role = await role();
-        const Permission = await permission();
-        const userRoleInfo = await UserHasRole.findAll({
-        where: { user_id: userId},
-        include: [Role],
-        });
+    getUserRoleAndPermissions = async (userId) => {
+        try {
+            const UserHasRole = await userHasRole();
+            const RoleHasPermission = await roleHasPermission();
+            const Role = await role();
+            const Permission = await permission();
     
-        if (userRoleInfo) {
-        const {user_id, role } = userRoleInfo;
-        if(role){
-            const permissionDatas = await RoleHasPermission.findAll({
-                where:{
-                    role_id:role.dataValues.id
+            const userRoleInfo = await UserHasRole.findAll({
+                where: {
+                    user_id: userId,
+                    status: 'on'
                 },
-                include:{
-                    model:Permission,
-                    attributes: ['id', 'name'],
+                include: {
+                    model: Role
                 }
-            })
-            if(permissionDatas){
-                let allPermission = null;
-                permissionDatas.forEach((e)=>{
-                        allPermission = e.dataValues.permission;    
-                })
-                return {role:role,permission:allPermission}
+            });
+            if (userRoleInfo && userRoleInfo.length > 0) {
+                const { user_id, role } = userRoleInfo[0].dataValues;
+                if (role) {
+                    const permissionDatas = await RoleHasPermission.findAll({
+                        where: {
+                            role_id: role.dataValues.id
+                        },
+                        include: {
+                            model: Permission,
+                            attributes: ['id', 'name'],
+                        }
+                    });
+    
+                    if (permissionDatas && permissionDatas.length > 0) {
+                        const allPermission = permissionDatas.map(e => e.dataValues.permission);
+                        return { role: role.dataValues, permission: allPermission };
+                    }
+                }
+            } else {
+                return { role: [], permission: [] };
             }
+        } catch (error) {
+            console.error(error);
+            return { role: [], permission: [] };
         }
-        } else {
-        return {}
-        }
-    } catch (error) {
-        return {}
     }
-    }
+    
+    
     async getUserRoleAndPermissionsBelongToUser(req, res) {
         try {
           const { user_id } = req.params;
