@@ -27,6 +27,10 @@ async function user() {
       type:DataTypes.INTEGER,
       allowNull:false,
     },
+    platform_ids:{
+      type:DataTypes.JSON,
+      allowNull:false,
+    },
     status:{
       type:DataTypes.STRING,
       allowNull:true,
