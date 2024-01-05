@@ -27,8 +27,8 @@ const storage = multer.diskStorage({
 const upload = multer({ storage }).single('image');
 class UserController{
     constructor() {
-        this.addNewUser = this.addNewUser.bind(this);
-        this.getUserRoleAndPermissions = this.getUserRoleAndPermissions.bind(this);
+        // this.addNewUser = this.addNewUser.bind(this);
+        // this.getUserRoleAndPermissions = this.getUserRoleAndPermissions.bind(this);
     }
     async index(req,res){
         const User = await setup();
@@ -113,90 +113,22 @@ class UserController{
                     message: 'Invalid email or password',
                 });
             }
-            const roleAndPermission = await this.getUserRoleAndPermissions(user.id);
-            console.log("roleAndPermission",roleAndPermission)
-            if(roleAndPermission){
-                const token = jwt.sign(
-                    { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email,roleAndPermission } },
-                    secret,
-                    { expiresIn: '24h' }
-                    ); 
+               const token = jwt.sign(
+                { user: { id: user.id, name: user.name,fullName:user.fullName, email: user.email } },
+                secret,
+                { expiresIn: '24h' }
+                ); 
                 return res.status(201).json({
                     success: true,
                     token: token,
                     message:"you have loged in successfully"
                 });
-            }
         } catch (error) {
             console.error(error);
             return res.status(500).json({
                 success:false,
                 message: 'An error occurred while logging in',
             });
-        }
-    }
-
-    // get user role and permissions 
-    getUserRoleAndPermissions = async (userId) => {
-        try {
-            const UserHasRole = await userHasRole();
-            const RoleHasPermission = await roleHasPermission();
-            const Role = await role();
-            const Permission = await permission();
-            const collectRoleId = [];
-            let allPermission = [];
-            let roles = [];
-            const userRoleInfo = await UserHasRole.findAll({
-                where: {
-                    user_id: userId,
-                    status: 'on'
-                },
-                attributes: ['role_id']
-            });
-            if (userRoleInfo && userRoleInfo.length > 0) {
-                collectRoleId.push(...userRoleInfo.map((v) => v.role_id));
-               const collectPermissionId = [];
-                if (collectRoleId.length > 0) {
-                    roles = await Role.findAll({
-                              id: {
-                                    [Op.in]: collectRoleId
-                                }
-                        });
-                    const permissionDatas = await RoleHasPermission.findAll({
-                        where: {
-                            status: 'on',
-                            role_id: {
-                                [Op.in]: collectRoleId
-                            }
-                        },
-                        attributes:['permission_id']
-                    });
-                    if (permissionDatas && permissionDatas.length > 0) {
-                       
-                        collectPermissionId.push(...permissionDatas.map((v)=>v.permission_id));
-                        if(collectPermissionId.length > 0){
-                            allPermission = await Permission.findAll({
-                                where: {
-                                    id: {
-                                        [Op.in]: collectPermissionId
-                                    }
-                                },
-                                attributes: ['name']
-                            });
-                        }
-                    }
-                }else{
-                    roles = [];
-                    allPermission = []
-                }
-            } else {
-                roles = [];
-                allPermission = []
-            }
-            return { roles: roles, permissions:allPermission };
-        } catch (error) {
-            console.error(error);
-            return { role: [], permission: [] };
         }
     }
     

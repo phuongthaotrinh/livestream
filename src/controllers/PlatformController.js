@@ -4,8 +4,8 @@ const platformRegister = require('../Models/PlatformRegister');
 const field = require('../Models/Field');
 const formTemplate = require('../Models/FormTemplates');
 const formField = require('../Models/FormField');
-const typeHasPlatform = require('../Models/TypeHasPlatForm');
 const user = require('../Models/User');
+const { Op } = require('sequelize');
 class PlatformController{
     // retrive all platform and type 
     async getAll(req,res){
@@ -135,26 +135,19 @@ class PlatformController{
             const FormField = await formField();
             const TypeHasPlatForm = await typeHasPlatform();
     
-            const { field_name, platform_id, form_name, live_type_id } = req.body;
+            const { field_name,form_name, live_type_id } = req.body;
             const build =  Field.build({
                 field_name: field_name
             });
     
             const buildTempalte =  FormTemplates.build({
                 name: form_name,
-                platform_id: platform_id
-            });
-    
-            const buildTypeHasPlatform =  TypeHasPlatForm.build({
-                platform_id: platform_id,
                 live_type_id: live_type_id
             });
-    
-            const saveTypeHasPlatform = await buildTypeHasPlatform.save();
             const saveTemplate = await buildTempalte.save();
             const save = await build.save();
     
-            if (save && saveTemplate && saveTypeHasPlatform) {
+            if (save && saveTemplate) {
                 const field_id = save.dataValues.id;
                 const template_id = saveTemplate.dataValues.id;
     
@@ -190,7 +183,7 @@ class PlatformController{
     // create user submissions
     async createUserSubmissions(req,res) {
         try {
-          const {user_id,form_id,field_data,field_id,form_field_id} = req.body;
+          const {user_id,form_id,field_data,field_id,form_field_id,platform_ids} = req.body;
           const PlatformRegister = await platformRegister();
           const Field = await field();
           if(!user_id || !form_id || !field_data){
@@ -199,11 +192,11 @@ class PlatformController{
                 message:"One of the input field is empty"
             })
           }
-             
           const buildSubmission = PlatformRegister.build({
             user_id: user_id,
             form_id: form_id,
-            form_field_id:form_field_id
+            form_field_id:form_field_id,
+            platform_ids:platform_ids
           });
           const [affectedRows] = await Field.update({
             field_data:field_data
@@ -280,7 +273,6 @@ class PlatformController{
           const Forms = await formTemplate(); 
           const PlatformRegisters = await platformRegister();
           const LivestreamPlatform = await livestreamPlatform();
-          const TypeHasPlatforms = await typeHasPlatform();
           const LivestreamType = await livestreamType();
           const userSubmissions = await PlatformRegisters.findOne({
             where: { user_id: user_id },
@@ -288,7 +280,7 @@ class PlatformController{
               {
                 model: Forms,
                 include:{
-                    model:LivestreamPlatform,
+                    model:LivestreamType
                 }
               },
               {
@@ -299,27 +291,18 @@ class PlatformController{
               },
             ],
           });
-           let platform_id =  userSubmissions.form.platform_id;
-        //    userSubmissions.map((v)=>{
-        //       platform_id = v.form.platform_id
-        //    })
-           const platformAndType = await TypeHasPlatforms.findAll({
-                where:{
-                    platform_id:platform_id
-                },
-                include:[
-                    {
-                        model:LivestreamType,
-                    },
-                    {
-                        model:LivestreamPlatform
-                    }
-                ],
-           });
+          let platformIds = userSubmissions.platform_ids;
+          const platforms = await LivestreamPlatform.findAll({
+            where:{
+                id:{
+                    [Op.in]:platformIds
+                }
+            }
+          })
           return res.json(
             {
                 userSubmissions,
-                platformAndType
+                platforms
             });
         } catch (error) {
           console.error(error);
@@ -370,48 +353,37 @@ class PlatformController{
             const Forms = await formTemplate(); 
             const PlatformRegisters = await platformRegister();
             const LivestreamPlatform = await livestreamPlatform();
-            const TypeHasPlatforms = await typeHasPlatform();
             const LivestreamType = await livestreamType();
-            const User = await user();
             const userSubmissions = await PlatformRegisters.findOne({
-              where: { user_id: user_id },
-              include: [
-                {
-                  model: Forms,
-                  include:{
-                      model:LivestreamPlatform,
-                  }
-                },
-                {
-                  model: FormFields,
-                  include:{
-                      model:Field,
-                  }
-                },
-                {
-                    model:User
-                }
-              ]
-            });
-             let platform_id = userSubmissions.form.platform_id;
-             const platformAndType = await TypeHasPlatforms.findAll({
-                  where:{
-                      platform_id:platform_id
+                where: { user_id: user_id },
+                include: [
+                  {
+                    model: Forms,
+                    include:{
+                        model:LivestreamType
+                    }
                   },
-                  include:[
-                      {
-                          model:LivestreamType,
-                      },
-                      {
-                          model:LivestreamPlatform
-                      }
-                  ],
-             });
-            return res.json(
-              {
-                  userSubmissions,
-                  platformAndType
+                  {
+                    model: FormFields,
+                    include:{
+                        model:Field,
+                    }
+                  },
+                ],
               });
+              let platformIds = userSubmissions.platform_ids;
+              const platforms = await LivestreamPlatform.findAll({
+                where:{
+                    id:{
+                        [Op.in]:platformIds
+                    }
+                }
+              })
+              return res.json(
+                {
+                    userSubmissions,
+                    platforms
+                });
          } catch (error) {
              
          }
