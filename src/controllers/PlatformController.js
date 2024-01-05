@@ -135,9 +135,9 @@ class PlatformController{
             const FormField = await formField();
             const TypeHasPlatForm = await typeHasPlatform();
     
-            const { field_data, platform_id, form_name, live_type_id } = req.body;
+            const { field_name, platform_id, form_name, live_type_id } = req.body;
             const build =  Field.build({
-                field_data: field_data
+                field_name: field_name
             });
     
             const buildTempalte =  FormTemplates.build({
@@ -190,10 +190,10 @@ class PlatformController{
     // create user submissions
     async createUserSubmissions(req,res) {
         try {
-          const {user_id,form_id,field_value,field_id,form_field_id} = req.body;
+          const {user_id,form_id,field_data,field_id,form_field_id} = req.body;
           const PlatformRegister = await platformRegister();
           const Field = await field();
-          if(!user_id || !form_id || !field_value){
+          if(!user_id || !form_id || !field_data){
             return res.status(400).json({
                 success:false,
                 message:"One of the input field is empty"
@@ -206,7 +206,7 @@ class PlatformController{
             form_field_id:form_field_id
           });
           const [affectedRows] = await Field.update({
-            field_value:field_value
+            field_data:field_data
           },{
             where:{
                 id:field_id
