@@ -11,4 +11,5 @@ router.post('/add-more-type-into-platform',TokenCheckMiddleware,platform_control
 router.get('/get-form/:user_id',TokenCheckMiddleware,platform_controller.getForm);
 router.post('/approve-registered-platform',TokenCheckMiddleware,platform_controller.approveRegisteredPlatform);
 router.get('/get-detail-registered-platform/:user_id',TokenCheckMiddleware,platform_controller.getRegisteredDetailAndResult);
+router.get('/get-form-field-by-live-type-id/:live_type_id',TokenCheckMiddleware,platform_controller.getFormByLiveTypeId);
 module.exports = router;
