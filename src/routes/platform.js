@@ -16,4 +16,6 @@ router.get("/get-form-data/:user_id",TokenCheckMiddleware,platform_controller.ge
 router.get('/get-all-forms',TokenCheckMiddleware,platform_controller.getAllForms);
 router.post('/register-platform',TokenCheckMiddleware,platform_controller.registerPlatform);
 router.get('/get-registered-platform/:user_id',TokenCheckMiddleware,platform_controller.getRegisteredPlatform);
+router.get('/get-all-forms-register',TokenCheckMiddleware,platform_controller.getAllFormsRegister);
+
 module.exports = router;
