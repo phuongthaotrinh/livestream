@@ -17,6 +17,7 @@ const initFormTempaltes = require('../Models/FormTemplates');
 const initFormField = require('../Models/FormField');
 const initGroup = require('../Models/Group');
 const initFormFieldData = require('../Models/FormFieldData');
+const initUserHasPlatfrom = require('../Models/UserHasPlatform')
 async function setup() {
     const sequelize = await db.connect();
     const User = initUserModel(sequelize);
@@ -37,6 +38,7 @@ async function setup() {
     const FormField = initFormField(sequelize);
     const Group = initGroup(sequelize);
     const FormFieldData = initFormFieldData(sequelize);
+    const UserHasPlatform = initUserHasPlatfrom(sequelize);
     await sequelize.sync({ force: false });
     return [
         User,Slide,
