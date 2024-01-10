@@ -13,4 +13,6 @@ router.post('/approve-registered-platform',TokenCheckMiddleware,platform_control
 router.get('/get-detail-registered-platform/:user_id',TokenCheckMiddleware,platform_controller.getRegisteredDetailAndResult);
 router.get('/get-form-field-by-live-type-id/:live_type_id',TokenCheckMiddleware,platform_controller.getFormByLiveTypeId);
 router.get("/get-form-data/:user_id",TokenCheckMiddleware,platform_controller.getFormData);
+router.get('/get-all-forms',TokenCheckMiddleware,platform_controller.getAllForms);
+
 module.exports = router;
