@@ -133,7 +133,6 @@ class PlatformController{
             const Field = await field();
             const FormTemplates = await formTemplate();
             const FormField = await formField();
-            const TypeHasPlatForm = await typeHasPlatform();
     
             const { field_name,form_name, live_type_id } = req.body;
             const build =  Field.build({
@@ -443,6 +442,22 @@ class PlatformController{
             return res.status(500).json({
                 success:false,
                 message:"Something went wrong while processing"
+            })
+        }
+     }
+
+     async getAllForms(req,res){
+        try {
+            const Forms = await formTemplate(); 
+            const dataForm = await Forms.findAll();
+            return res.status(200).json({
+                success:true,
+                data:dataForm
+            })
+        } catch (error) {
+            return res.status(500).json({
+               success:false,
+               message:error
             })
         }
      }
