@@ -479,5 +479,29 @@ class PlatformController{
             })
         }
      }
+     async getAllFormsRegister(req,res){
+        try {
+            const PlatformRegiter = await platformRegister(); 
+            const Users = await user();
+
+            const forms = await PlatformRegiter.findAll({
+                include:[
+                    {
+                        model: Users,
+                      },
+                ]
+            });
+           
+            return res.status(200).json({
+                success:true,
+                data:forms
+            })
+        } catch (error) {
+            return res.status(500).json({
+               success:false,
+               message:error
+            })
+        }
+     }
 }
 module.exports = new PlatformController();
