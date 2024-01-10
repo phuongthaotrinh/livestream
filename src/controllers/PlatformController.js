@@ -4,6 +4,7 @@ const platformRegister = require('../Models/PlatformRegister');
 const field = require('../Models/Field');
 const formTemplate = require('../Models/FormTemplates');
 const formField = require('../Models/FormField');
+const formFieldData = require('../Models/FormFieldData');
 const user = require('../Models/User');
 const { Op } = require('sequelize');
 class PlatformController{
@@ -186,6 +187,7 @@ class PlatformController{
           const {user_id,form_id,field_data,field_id,form_field_id,platform_ids} = req.body;
           const PlatformRegister = await platformRegister();
           const Field = await field();
+          const FormFieldData = await formFieldData();
           if(!user_id || !form_id || !field_data){
             return res.status(400).json({
                 success:false,
@@ -198,17 +200,15 @@ class PlatformController{
             form_field_id:form_field_id,
             platform_ids:platform_ids
           });
-          const [affectedRows] = await Field.update({
-            field_data:field_data
-          },{
-            where:{
-                id:field_id
-            }
+          const saveFormFieldData = await FormFieldData.create({
+            field_data:field_data,
+            user_id:user_id,
+            field_id:field_id
           })
 
           const saveSubmission = await buildSubmission.save();
       
-          if (saveSubmission && affectedRows > 0) {
+          if (saveSubmission && saveFormFieldData) {
             return res.status(201).json({
               success: true,
               message: "Your info is saved successfully."
@@ -436,7 +436,8 @@ class PlatformController{
             })
             return res.status(200).json({
                 success:true,
-                data:fieldData ? fieldData:[]
+                data:fieldData ? fieldData:[],
+                form_field_id:collectFormFieldIds
             })
         } catch (error) {
             console.log(error)
@@ -445,6 +446,24 @@ class PlatformController{
                 message:"Something went wrong while processing"
             })
         }
+     }
+     // get forms data 
+     async getFormData(req,res){
+         try {
+            const {user_id} = req.params;
+            const FormFieldData = await formFieldData();
+            const datas = await FormFieldData.findAll({
+                where:{
+                    user_id:user_id
+                }
+            })
+            return res.status(200).json({
+                success:true,
+                data:datas ? datas:[]
+            })
+         } catch (error) {
+            console.log(error)
+         }
      }
 }
 module.exports = new PlatformController();

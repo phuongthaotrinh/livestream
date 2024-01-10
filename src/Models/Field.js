@@ -15,10 +15,6 @@ async function field() {
       type: DataTypes.JSON,
       allowNull: false
     },
-    field_data:{
-      type: DataTypes.JSON,
-      allowNull: true
-    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: true
