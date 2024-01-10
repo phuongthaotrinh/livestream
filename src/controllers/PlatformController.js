@@ -388,5 +388,63 @@ class PlatformController{
              
          }
      }
+     // get forms bhy live type id
+     async getFormByLiveTypeId(req,res){
+        try {
+            const {live_type_id} = req.params;
+            const Field = await field();
+            const FormFields = await formField();
+            const Forms = await formTemplate();
+            let collectformId = [];
+            const FormsIds = await Forms.findAll({
+                where:{
+                    live_type_id:live_type_id
+                }
+            })
+            if(!FormsIds){
+                return res.status(400).json({
+                     success:false,
+                     message:"Form belong to livestream type is not found"
+                })
+            }
+            FormsIds.map((v)=>{
+                collectformId.push(v.id)
+            })
+            let collectFormFieldIds = [];
+            const formnFieldIds = await FormFields.findAll({
+                where:{
+                    form_id:{
+                        [Op.in]:collectformId
+                    }
+                }
+            })
+            if(!formnFieldIds){
+                return res.status(400).json({
+                    success:false,
+                    message:"FormFields belong to livestream type is not found"
+               })
+            }
+            formnFieldIds.map((v)=>{
+                collectFormFieldIds.push(v.field_id)
+            })
+            const fieldData = await Field.findAll({
+                 where:{
+                    id:{
+                        [Op.in]:collectFormFieldIds
+                    }
+                 }
+            })
+            return res.status(200).json({
+                success:true,
+                data:fieldData ? fieldData:[]
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({
+                success:false,
+                message:"Something went wrong while processing"
+            })
+        }
+     }
 }
 module.exports = new PlatformController();
