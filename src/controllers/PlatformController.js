@@ -315,14 +315,14 @@ class PlatformController{
       // admin approve register platform form
       async approveRegisteredPlatform(req,res){
          try {
-             const {user_id,form_id,status}= req.body;
+             const {user_id,register_id,status}= req.body;
              const PlatformRegisters = await platformRegister();
              const [affectedRows] = await PlatformRegisters.update({
                 additional_status:status
              },{
                 where:{
                     user_id:user_id,
-                    form_id:form_id
+                    id:form_id
                 }
              })
              if(affectedRows > 0){
