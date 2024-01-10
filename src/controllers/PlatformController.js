@@ -395,7 +395,7 @@ class PlatformController{
             const FormFields = await formField();
             const Forms = await formTemplate();
             let collectformId = [];
-            const FormsIds = await Forms.findOne({
+            const FormsIds = await Forms.findAll({
                 where:{
                     live_type_id:live_type_id
                 }
@@ -406,7 +406,9 @@ class PlatformController{
                      message:"Form belong to livestream type is not found"
                 })
             }
-            collectformId = FormsIds.dataValues.live_type_id;
+            FormsIds.map((v)=>{
+                collectformId.push(v.id)
+            })
             let collectFormFieldIds = [];
             const formnFieldIds = await FormFields.findAll({
                 where:{
