@@ -6,6 +6,7 @@ const formTemplate = require('../Models/FormTemplates');
 const formField = require('../Models/FormField');
 const formFieldData = require('../Models/FormFieldData');
 const user = require('../Models/User');
+const userhasplatform = require('../Models/UserHasPlatform');
 const { Op } = require('sequelize');
 class PlatformController{
     // retrive all platform and type 
@@ -315,14 +316,14 @@ class PlatformController{
       // admin approve register platform form
       async approveRegisteredPlatform(req,res){
          try {
-             const {user_id,form_id,status}= req.body;
+             const {user_id,register_id,status}= req.body;
              const PlatformRegisters = await platformRegister();
              const [affectedRows] = await PlatformRegisters.update({
                 additional_status:status
              },{
                 where:{
                     user_id:user_id,
-                    form_id:form_id
+                    id:form_id
                 }
              })
              if(affectedRows > 0){
@@ -478,6 +479,81 @@ class PlatformController{
                message:error
             })
         }
+     }
+     // async register platform
+     async registerPlatform(req,res){
+         try {
+            const {user_id,platform_ids,status,id} = req.body;
+            const UserHasPlatform = await userhasplatform();
+            if(id){
+                if(!status || !id){
+                    return res.status(400).json({
+                        success:false,
+                        message:"status or id is being empty please check your input again"
+                    })
+                }
+               const [affectedRows] = await UserHasPlatform.update({
+                   status:status
+               },{
+                 where:{
+                    id:id
+                 }
+               })
+               if(affectedRows> 0){
+                 return res.status(201).json({
+                    success:true,
+                    message:"update register info  for platforms successfully"
+                 })
+               }
+            }else{
+                if(!platform_ids || !user_id){
+                    return res.status(400).json({
+                        success:false,
+                        message:"platform_id or user_id is being empty please check your input again"
+                    })
+                }
+                const saveForm = await UserHasPlatform.create({
+                    user_id:user_id,
+                    platform_ids:platform_ids
+                })
+                if(saveForm){
+                    return res.status(201).json({
+                        success:true,
+                        message:"Your platforms registration information is saved successfully"
+                    })
+                }
+            }
+         } catch (error) {
+            console.log(error)
+            return res.status(201).json({
+                success:false,
+                message:"something went wrong while processing"
+             })
+         }
+     }
+     // get platform has been registered by users 
+     async getRegisteredPlatform(req,res){
+        const {user_id} = req.params;
+        const UserHasPlatform = await userhasplatform();
+        let collectUserhasplatfomrIds = null;
+        const userhasplatformdata = await UserHasPlatform.findOne({
+            where:{
+                user_id:user_id
+            }
+        })
+        collectUserhasplatfomrIds = userhasplatformdata.dataValues.platform_ids;
+        const LiveStreamPlatform = await livestreamPlatform();
+        const data = await LiveStreamPlatform.findAll({
+            where:{
+                id:{
+                    [Op.in]:collectUserhasplatfomrIds
+                }
+            }
+        })
+        return res.status(200).json({
+            success:true,
+            data:data ? data:[]
+        })
      }
      async getAllFormsRegister(req,res){
         try {
