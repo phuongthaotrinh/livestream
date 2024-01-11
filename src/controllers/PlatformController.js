@@ -323,7 +323,7 @@ class PlatformController{
              },{
                 where:{
                     user_id:user_id,
-                    id:form_id
+                    id:register_id
                 }
              })
              if(affectedRows > 0){
@@ -564,7 +564,7 @@ class PlatformController{
                 include:[
                     {
                         model: Users,
-                      },
+                    },
                 ]
             });
            
