@@ -249,7 +249,29 @@ class PlatformController {
                 platform_id: platform_id,
                 live_type_id: live_type_id
             });
-            if (save) {
+        } catch (error) {
+          console.error(error);
+          return res.status(500).json({
+            success: false,
+            message: "Something went wrong",
+          });
+        }
+      }
+
+      // admin approve register platform form
+      async approveRegisteredPlatform(req,res){
+         try {
+             const {user_id,register_id,status}= req.body;
+             const PlatformRegisters = await platformRegister();
+             const [affectedRows] = await PlatformRegisters.update({
+                additional_status:status
+             },{
+                where:{
+                    user_id:user_id,
+                    id:register_id
+                }
+             })
+             if(affectedRows > 0){
                 return res.status(201).json({
                     success: true,
                     message: "save successfully"
