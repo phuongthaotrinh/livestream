@@ -514,36 +514,20 @@ class PlatformController {
                         message: "status or id is being empty please check your input again"
                     })
                 }
-                if(id,status){
-                    const [affectedRows] = await UserHasPlatform.update({
-                        status: status
-                    }, {
-                        where: {
-                            id: id
-                        }
-                    });
-                    if (affectedRows > 0) {
-                        return res.status(201).json({
-                            success: true,
-                            message: "update register info  for platforms successfully"
-                        })
+                const [affectedRows] = await UserHasPlatform.update({
+                    user_id: user_id,
+                    platform_ids: platform_ids,
+                    status: status,
+                }, {
+                    where: {
+                        id: id
                     }
-                }else{
-                    const [affectedRows] = await UserHasPlatform.update({
-                        user_id: user_id,
-                        platform_ids: platform_ids,
-                        status: status,
-                    }, {
-                        where: {
-                            id: id
-                        }
-                    });
-                    if (affectedRows > 0) {
-                        return res.status(201).json({
-                            success: true,
-                            message: "update register info  for platforms successfully"
-                        })
-                    }
+                });
+                if (affectedRows > 0) {
+                    return res.status(201).json({
+                        success: true,
+                        message: "update register info  for platforms successfully"
+                    })
                 }
             
             } else {
