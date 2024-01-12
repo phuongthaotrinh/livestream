@@ -376,7 +376,7 @@ class PlatformController {
             const PlatformRegisters = await platformRegister();
             const LivestreamPlatform = await livestreamPlatform();
             const LivestreamType = await livestreamType();
-            const userSubmissions = await PlatformRegisters.findOne({
+            const userSubmissions = await PlatformRegisters.findAll({
                 where: { user_id: user_id },
                 include: [
                     {
@@ -393,21 +393,38 @@ class PlatformController {
                     },
                 ],
             });
-            let platformIds = userSubmissions.platform_ids;
+            let platformIds = [];
+            userSubmissions.map((v)=>{
+                 platformIds.push(v.platform_ids)
+            });
+            if(platformIds.length < 1){
+                return res.status(400).json({
+                    success:false,
+                    message:"Platform not found"
+                })
+            }
+            let flatArray = [].concat(...platformIds);
+            
+            let uniqueArray = [...new Set(flatArray)];
             const platforms = await LivestreamPlatform.findAll({
                 where: {
                     id: {
-                        [Op.in]: platformIds
+                        [Op.in]: uniqueArray
                     }
                 }
             })
-            return res.json(
+            return res.status(200).json(
                 {
                     userSubmissions,
                     platforms
                 });
         } catch (error) {
-
+             console.log(error)
+             return res.status(500).json(
+                {
+                  success:false,
+                  message:"not found"
+                });
         }
     }
     // get forms bhy live type id
