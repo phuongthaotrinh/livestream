@@ -583,7 +583,7 @@ class UserController{
                 }
             });
     
-            if (checkUserRole && checkUserRole.role.name === 'manager') {
+            if (checkUserRole && checkUserRole.role.name === 'manager' ||  checkUserRole.role.name === 'admin') {
                 const group = await Group.findAll({
                     include: [
                       {
