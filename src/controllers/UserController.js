@@ -419,7 +419,7 @@ class UserController{
       });
       let roleName = false;
       userHasRolesWithAssociations.forEach((userHasRole) => {
-          if(userHasRole.role.name === 'manager'){
+          if(userHasRole.role.name === 'manager' || userHasRole.role.name === 'admin'){
             roleName = true
           }
       });
