@@ -437,5 +437,33 @@ class RoleAndPermissionController{
           })
        }
     }
+    // delete permissions 
+    async deletePermission(req,res){
+       try {
+         const {permission_id} = req.params;
+         const Permission = await permission();
+         const deletePer = await Permission.destroy({
+            where:{
+                id:permission_id
+            }
+         })
+         if(deletePer){
+            return res.status(201).json({
+                success:true,
+                message:"delete permission successfully"
+            })
+         }else{
+            return res.status(400).json({
+                success:false,
+                message:"delete permission unsuccessfully"
+            })
+         }
+       } catch (error) {
+            return res.status(500).json({
+                success:false,
+                message:"delete permission unsuccessfully"
+            })
+        }
+    }
 }
 module.exports = new RoleAndPermissionController();

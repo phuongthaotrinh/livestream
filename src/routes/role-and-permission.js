@@ -4,6 +4,7 @@ const router = express.Router();
 const role_per_controller = require('../controllers/RoleAndPermissionController.js');
 // get all role 
 router.get('/get-all-role',TokenCheckMiddleware,role_per_controller.getAllRole);
+router.delete('/delete-permission/:permission_id',TokenCheckMiddleware,role_per_controller.deletePermission);
 // add roles 
 router.post('/add-role',TokenCheckMiddleware,role_per_controller.addRole);
 // add permissions 
