@@ -1,5 +1,6 @@
 const path = require('path');
 const multer = require('multer');
+const ExcelJS = require('exceljs');
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
       const destinationPath = path.join(__dirname, '..', 'public', 'uploads');
@@ -12,6 +13,7 @@ const storage = multer.diskStorage({
   });
   
 const upload = multer({ storage }).array('images',5);
+const uploads = multer({ storage }).array('excelFile',1);
 const news = require('../Models/News');
 const slide = require('../Models/Slide');
 const group = require('../Models/Group');
@@ -273,5 +275,45 @@ class AdditionalController{
             })
         }
     }
+    async importExcel(req, res) {
+            try {
+                uploads(req, res, async function (err) {
+                    if (err instanceof multer.MulterError) {
+                        return res.status(400).json({
+                            success: false,
+                            message: err.message
+                        });
+                    } else if (err) {
+                        return res.status(500).json({ error: err.message });
+                    }
+        
+                    if (!req.files || req.files.length === 0) {
+                        return res.status(400).json({ error: 'Files not found' });
+                    }
+        
+                    const file = req.files[0];
+                    let data = [];
+                    // const predefinedFilePath = 'E:/Local Disk/WorkSpace/WebSpace/livestream/src/public/uploads/ds-6tv.xlsx';
+                    const workbook = new ExcelJS.Workbook();
+                    await workbook.xlsx.readFile(file.path);
+        
+                    const worksheet = workbook.getWorksheet(1);
+                    worksheet.eachRow({ includeEmpty: false }, (row) => {
+                        const rowData = row.values;
+                        data.push(rowData);
+                    });
+                    data = data.slice(1);
+                    return res.status(201).json({
+                        success: true,
+                        message: 'Excel file content read successfully',
+                        data: data
+                    });
+                });
+        } catch (error) {
+            console.error(error);
+            return res.status(500).json({ error: 'Internal Server Error' });
+        }
+    }
+    
 }
 module.exports = new AdditionalController();
