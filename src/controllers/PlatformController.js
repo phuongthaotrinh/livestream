@@ -489,11 +489,11 @@ class PlatformController {
     // get forms data 
     async getFormData(req, res) {
         try {
-            const { user_id } = req.params;
+            const { register_form_id } = req.params;
             const FormFieldData = await formFieldData();
             const datas = await FormFieldData.findAll({
                 where: {
-                    user_id: user_id
+                    id: register_form_id
                 }
             })
             return res.status(200).json({

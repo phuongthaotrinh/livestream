@@ -16,7 +16,7 @@ async function news() {
       allowNull: false
     },
     content: {
-        type: DataTypes.TEXT,
+        type: DataTypes.JSON,
         allowNull: false
     },
     preview: {
@@ -24,7 +24,7 @@ async function news() {
       allowNull: false
     },
     image_link:{
-        type: DataTypes.STRING,
+        type: DataTypes.JSON,
         allowNull: false
     },
     status:{
