@@ -12,7 +12,7 @@ async function slide() {
       primaryKey: true,
     },
     image_link:{
-        type: DataTypes.STRING,
+        type: DataTypes.JSON,
         allowNull:false
     },
     position:{

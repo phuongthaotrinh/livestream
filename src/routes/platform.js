@@ -12,7 +12,7 @@ router.get('/get-form/:user_id',TokenCheckMiddleware,platform_controller.getForm
 router.post('/approve-registered-platform',TokenCheckMiddleware,platform_controller.approveRegisteredPlatform);
 router.get('/get-detail-registered-platform/:user_id',TokenCheckMiddleware,platform_controller.getRegisteredDetailAndResult);
 router.get('/get-form-field-by-live-type-id/:live_type_id',TokenCheckMiddleware,platform_controller.getFormByLiveTypeId);
-router.get("/get-form-data/:user_id",TokenCheckMiddleware,platform_controller.getFormData);
+router.get("/get-form-data/:register_form_id",TokenCheckMiddleware,platform_controller.getFormData);
 router.get('/get-all-forms',TokenCheckMiddleware,platform_controller.getAllForms);
 router.post('/register-platform',TokenCheckMiddleware,platform_controller.registerPlatform);
 router.get('/get-registered-platform/:user_id',TokenCheckMiddleware,platform_controller.getRegisteredPlatform);
