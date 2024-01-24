@@ -5,6 +5,7 @@ const roleHasPer = require('../Models/RoleHasPermission');
 const userHasRole = require('../Models/UserHasRole');
 const roleHasPermission = require('../Models/RoleHasPermission');
 const { Op } = require('sequelize');
+const userHasPer = require('../Models/UserHasPer');
 class RoleAndPermissionController{
     // get all role 
     getAllRole = async (req, res) => {
@@ -462,6 +463,81 @@ class RoleAndPermissionController{
             return res.status(500).json({
                 success:false,
                 message:"delete permission unsuccessfully"
+            })
+        }
+    }
+    // add permissions for each users
+    async addUserPermission(req,res){
+         try {
+            const {permission_id,user_id,status} = req.body;
+            const UserHasPer = await userHasPer();
+            const checkBefore = await UserHasPer.findOne({
+                where:{
+                    user_id:user_id,
+                    permission_id:permission_id,
+                }
+            })
+            if(checkBefore){
+                const [affectedRows] = await UserHasPer.update({
+                    user_id:user_id,
+                    permission_id:permission_id,
+                    status:status
+                },{
+                    where:{
+                        user_id:user_id,
+                        permission_id:permission_id
+                    }
+                });
+                if(affectedRows > 0){
+                    return res.status(201).json({
+                        success:true,
+                        message:"updated successfully"
+                    })
+                }
+            }else{
+                const createNew = await UserHasPer.create({
+                    user_id:user_id,
+                    permission_id:permission_id,
+                    status:status
+                })
+                if(createNew){
+                    return res.status(201).json({
+                        success:true,
+                        message:"create successfully"
+                    })
+                }
+            }
+         } catch (error) {
+            console.log(error)
+            return res.status(500).json({
+                success:false,
+                message:"something went wrong"
+            })
+         }
+    }
+    async getAllPermissionBelongToUser(req,res){
+        try {
+            const {user_id} = req.params;
+            const UserHasPer = await userHasPer();
+            const Permission = await permission();
+            const allPermission = await UserHasPer.findAll({
+                where:{
+                    user_id:user_id,
+                    status:'on'
+                },
+                include:{
+                    model:Permission
+                }
+            })
+            return res.status(200).json({
+                success:true,
+                data:allPermission ? allPermission :[]
+            })
+        } catch (error) {
+            console.log(error)
+            return res.status(500).json({
+                success:false,
+                data:[]
             })
         }
     }

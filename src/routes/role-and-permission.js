@@ -23,4 +23,8 @@ router.put('/reassign-role-for-user',TokenCheckMiddleware,role_per_controller.re
 router.get('/get-per-belong-to-role/:role_id',TokenCheckMiddleware,role_per_controller.roleHasPer);
 // get role belong to user 
 router.get('/get-role-belong-to-user/:user_id',TokenCheckMiddleware,role_per_controller.userHasRole)
+// get all permission belong to user
+router.get('/get-all-permission-belong-to-user/:user_id',TokenCheckMiddleware,role_per_controller.getAllPermissionBelongToUser);
+// store user permissions 
+router.post('/store-user-permission',TokenCheckMiddleware,role_per_controller.addUserPermission);
 module.exports = router;

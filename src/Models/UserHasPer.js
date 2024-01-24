@@ -1,19 +1,19 @@
 const { connect } = require('../dbconnect');
 const Sequelize =require('sequelize');
 const DataTypes= Sequelize.DataTypes;
-const liveplatform = require('./LivestreamPlatform');
 const user = require('./User');
-async function userHasPlatform() {
+const permission = require('./Permission');
+async function userHasPer() {
     const sequelize = await connect();
-    const UserHasPlatfrom = sequelize.define('user_has_platforms', {
+    const UserHasPer = sequelize.define('user_has_pers', {
       id: {
         type: DataTypes.INTEGER,
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
       },
-      platform_ids: {
-        type: DataTypes.JSON,
+      permission_id: {
+        type: DataTypes.INTEGER,
         allowNull: false
       },
       user_id: {
@@ -38,12 +38,12 @@ async function userHasPlatform() {
       createdAt: 'createdAt',
       updatedAt: 'updatedAt',
     });
-    const LiveStreamPlatform = await liveplatform();
+    const Permission = await permission();
     const User = await user();
-    UserHasPlatfrom.belongsTo(LiveStreamPlatform, { foreignKey: 'platform_id' });
-    UserHasPlatfrom.belongsTo(User, { foreignKey: 'user_id' });
-    await UserHasPlatfrom.sync({ force: false });
-    return UserHasPlatfrom;
+    UserHasPer.belongsTo(Permission, { foreignKey: 'permission_id' });
+    UserHasPer.belongsTo(User, { foreignKey: 'user_id' });
+    await UserHasPer.sync({ force: false });
+    return UserHasPer;
   }
   
-module.exports = userHasPlatform;
+module.exports = userHasPer;

@@ -17,7 +17,7 @@ const initFormTempaltes = require('../Models/FormTemplates');
 const initFormField = require('../Models/FormField');
 const initGroup = require('../Models/Group');
 const initFormFieldData = require('../Models/FormFieldData');
-const initUserHasPlatfrom = require('../Models/UserHasPlatform')
+const initUserHasPer = require('../Models/UserHasPer')
 async function setup() {
     const sequelize = await db.connect();
     const User = initUserModel(sequelize);
@@ -38,7 +38,7 @@ async function setup() {
     const FormField = initFormField(sequelize);
     const Group = initGroup(sequelize);
     const FormFieldData = initFormFieldData(sequelize);
-    const UserHasPlatform = initUserHasPlatfrom(sequelize);
+    const UserHasPer = initUserHasPer(sequelize);
     await sequelize.sync({ force: false });
     return [
         User,Slide,
@@ -47,7 +47,7 @@ async function setup() {
         LiveStreamType,Notification,
         UserHasRole,RoleHasPermission,
         PlatformRegister,UserGroup,Field,
-        FormTemplates,FormField,Group,FormFieldData
+        FormTemplates,FormField,Group,FormFieldData,UserHasPer
     ];
 }
 setup()

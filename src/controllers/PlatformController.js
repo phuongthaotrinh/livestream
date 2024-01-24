@@ -6,7 +6,6 @@ const formTemplate = require('../Models/FormTemplates');
 const formField = require('../Models/FormField');
 const formFieldData = require('../Models/FormFieldData');
 const user = require('../Models/User');
-const userhasplatform = require('../Models/UserHasPlatform');
 const { Op } = require('sequelize');
 class PlatformController {
     // retrive all platform and type 
