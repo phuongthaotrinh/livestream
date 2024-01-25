@@ -663,5 +663,32 @@ class UserController{
           })
       }
    }
+   // get user group id 
+   async getUserGroupId(req,res){
+      try {
+         const {user_id} = req.params;
+         const UserGroup = await userGroup();
+         const data = await UserGroup.findAll({
+            where:{
+                child_id:user_id,
+                status:'on'
+            }
+         })
+         const groupId = [];
+         data.map((v)=>{
+            groupId.push(v.group_id)
+         })
+         return res.status(201).json({
+            success:true,
+            data:groupId ? groupId:[]
+         })
+      } catch (error) {
+         console.log(error)
+         return res.status(500).json({
+            success:false,
+            data:[]
+         })
+      }
+   }
 } 
 module.exports = new UserController();

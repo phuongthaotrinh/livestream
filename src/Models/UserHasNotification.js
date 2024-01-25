@@ -1,33 +1,27 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
-const group = require('./Group');
-const user = require('./User');
 const DataTypes = Sequelize.DataTypes;
 
-async function notification() {
+async function user_has_notification() {
   const sequelize = await connect();
-  const Notification = sequelize.define('notifications', {
+  const UserHasNotification = sequelize.define('user_has_notifications', {
     id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       autoIncrement: true,
       primaryKey: true,
     },
-    title:{
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    message: {
-        type: DataTypes.TEXT,
-        allowNull: false
-    },
-    user_id:{
+    userId:{
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    group_id:{
-      type: DataTypes.INTEGER,
-      allowNull: false,
+    groupId:{
+        type: DataTypes.INTEGER,
+        allowNull: false,
+    },
+    notificationId:{
+        type: DataTypes.INTEGER,
+        allowNull: false,
     },
     status:{
         type: DataTypes.STRING,
@@ -47,12 +41,8 @@ async function notification() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
-  const GRoup = await group();
-  const User = await user();
-   Notification.belongsTo(GRoup,{foreignKey:'group_id'});
-   Notification.belongsTo(User,{foreignKey:'user_id'});
-  await Notification.sync({ force: false });
-  return Notification;
+  await UserHasNotification.sync({ force: false });
+  return UserHasNotification;
 }
 
-module.exports = notification;
+module.exports = user_has_notification;
