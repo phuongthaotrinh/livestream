@@ -273,7 +273,7 @@ class UserController{
         }).catch(err=>{
             return res.status(500).json({
                 success:false,
-                message:"something went wrong"
+                message:"Không thể xóa người dùng, hãy khóa để thay thế"
             })
         })
     }
@@ -361,7 +361,7 @@ class UserController{
     }
     //update profile
     async updateProfile(req,res){
-        const { name,fullName, email, password,userId} = req.body;
+        const { name,fullName, email, password,userId,phoneNumber,images,address} = req.body;
         const User =await setup();
         const saltRounds = 10;
         let newPassword = "";
@@ -379,7 +379,10 @@ class UserController{
             name:name,
             fullName:fullName,
             email:email,
-            password:newPassword
+            password:newPassword,
+            phoneNumber:phoneNumber,
+            images:images,
+            address:address
         },{
             where:{
                 id:userId

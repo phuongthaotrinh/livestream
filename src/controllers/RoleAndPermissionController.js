@@ -296,12 +296,12 @@ class RoleAndPermissionController{
                 message:"user or role does not existed in database"
             })
         }
-        if(checkUser.email === 'admin@gmail.com'){
-            return res.status(400).json({
-                success:false,
-                message:"you don't have a permission to change role for this user"
-            })
-        }
+        // if(checkUser.email === 'admin@gmail.com'){
+        //     return res.status(400).json({
+        //         success:false,
+        //         message:"you don't have a permission to change role for this user"
+        //     })
+        // }
         const buildSave = UserHasRole.build({
             user_id:user_id,
             role_id:role_id
@@ -328,40 +328,35 @@ class RoleAndPermissionController{
     // remove role for user 
     unAssignRoleForUser = async(req,res)=>{
        try {
-            const {role_id,user_id} = req.body;
-            const Role = await role();
+            const {user_has_role_id,user_id} = req.body;
+            const UserHasRole = await userHasRole();
             const User = await user();
-            if(!role_id || !user_id){
+            if(!user_has_role_id || !user_id){
                 return res.status(400).json({
                     success:false,
                     message:"role or user is being empty please check again"
                 })
             }
-            const checkRole = await Role.findOne({
+            const check= await UserHasRole.findOne({
                 where:{
-                    id:role_id
+                    id:user_has_role_id
                 }
             });
             const checkUser = await User.findByPk(user_id);
-            if(!checkUser || !checkRole){
+            if(!checkUser || !check){
                 return res.status(400).json({
                     success:false,
                     message:"user or role does not existed in database"
                 })
             }
-            if(checkUser.email === 'admin@gmail.com'){
-                return res.status(400).json({
-                    success:false,
-                    message:"you don't have a permission to change role for this user"
-                })
-            }
-            const UserHasRole = await userHasRole();
+          
+            
             const [affectedRows] = await UserHasRole.update({
                 status:"off"
             },{
                 where:{
                     user_id:user_id,
-                    role_id:role_id
+                    id:user_has_role_id
                 }
             })
             if(affectedRows > 0){
