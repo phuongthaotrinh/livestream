@@ -28,4 +28,5 @@ router.get('/get-all-member-in-group/:user_id/:group_id',TokenCheckMiddleware,us
 //get-all-group-belong-to-current-user
 router.get('/get-all-group-belong-to-current-user/:user_id',TokenCheckMiddleware,user_controller.getBelongGroup);
 router.get('/get-all-rol-per-belong-to-user/:user_id',TokenCheckMiddleware,user_controller.getUserRoleAndPermissionsBelongToUser);
+router.get('/get-user-group-id/:user_id',TokenCheckMiddleware,user_controller.getUserGroupId);
 module.exports = router;
