@@ -12,6 +12,12 @@ const shortid = require('shortid');
 const multer = require('multer');
 const userHasRole = require('../Models/UserHasRole');
 const { Op, Sequelize } = require('sequelize');
+const user = require('../Models/User');
+const news = require('../Models/News');
+const slide = require('../Models/Slide');
+const platformRegister = require('../Models/PlatformRegister');
+const livestreamPlatform = require('../Models/LivestreamPlatform');
+const livestreamType = require('../Models/LivestreamType');
 const secret =process.env.SECRET;
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -689,6 +695,126 @@ class UserController{
             data:[]
          })
       }
+   }
+   // get statistic
+   async getStatistic(req,res){
+       try {
+        const {startDate,endDate} = req.body;
+         let TotalUser = 0;
+         let totalNews = 0;
+         let totalSlide = 0;
+         let totalGroup = 0;
+         let totalUserHasRegisterSubmission = 0;
+         let totalLiveStreamType = 0;
+         let totalPlatForm = 0;
+         const News = await news();
+         const User = await user();
+         const Slide = await slide();
+         const Group = await group();
+         const PlatformRegister = await platformRegister();
+         const LiveStreamPlatform = await livestreamPlatform();
+         const LiveStreamType = await livestreamType();
+         if(startDate && endDate){
+            TotalUser = await User.count({
+                where:{
+                    block:false,
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                }
+            })
+            totalNews = await News.count({
+                where:{
+                    status:true,
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                }
+            })
+            totalSlide = await Slide.count({
+                where:{
+                    status:true,
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                }
+            })
+            totalGroup = await Group.count({
+               where:{
+                  status:"on",
+                  createdAt: {
+                    [Op.between]: [startDate, endDate]
+                },
+               }
+            })
+            totalUserHasRegisterSubmission = await PlatformRegister.count({
+                where:{
+                    status:"active",
+                    createdAt: {
+                        [Op.between]: [startDate, endDate]
+                    },
+                }
+            })
+            totalLiveStreamType = await LiveStreamPlatform.count({
+                where:{
+                    status:"on",
+                }
+            })
+            totalPlatForm  = await LiveStreamType.count()
+         }else{
+            TotalUser = await User.count({
+                where:{
+                    block:false
+                }
+            })
+            totalNews = await News.count({
+                where:{
+                    status:true
+                }
+            })
+            totalSlide = await Slide.count({
+                where:{
+                    status:true
+                }
+            })
+            totalGroup = await Group.count({
+               where:{
+                  status:"on"
+               }
+            })
+            totalUserHasRegisterSubmission = await PlatformRegister.count({
+                where:{
+                    status:"active"
+                }
+            })
+            totalLiveStreamType = await LiveStreamPlatform.count({
+                where:{
+                    status:"on"
+                }
+            })
+            totalPlatForm  = await LiveStreamType.count() 
+         }
+         return res.status(201).json({
+            TotalUser:TotalUser,
+            totalNews:totalNews,
+            totalSlide:totalSlide,
+            totalGroup:totalGroup,
+            totalUserHasRegisterSubmission:totalUserHasRegisterSubmission,
+            totalLiveStreamType:totalLiveStreamType,
+            totalPlatForm:totalPlatForm
+         })
+       } catch  (error) {
+          console.log(error)
+          return res.status(500).json({
+            TotalUser:0,
+            totalNews:0,
+            totalSlide:0,
+            totalGroup:0,
+            totalUserHasRegisterSubmission:0,
+            totalLiveStreamType:0,
+            totalPlatForm:0
+         })
+       }
    }
 } 
 module.exports = new UserController();
