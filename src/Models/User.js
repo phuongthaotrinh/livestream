@@ -35,7 +35,7 @@ async function user() {
       defaultValue: false,
     },
     images:{
-      type: DataTypes.STRING,
+      type: DataTypes.JSON,
       allowNull: true
     },
     phoneNumber:{
