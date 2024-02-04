@@ -1,6 +1,9 @@
 const { connect } = require('../dbconnect');
 const Sequelize = require('sequelize');
 const DataTypes = Sequelize.DataTypes;
+const user = require('./User');
+const group = require('./Group');
+const notif = require('./Notification');
 
 async function user_has_notification() {
   const sequelize = await connect();
@@ -41,6 +44,12 @@ async function user_has_notification() {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
   });
+  const User = await user();
+  const Group = await group();
+  const Notif = await notif();
+  UserHasNotification.belongsTo(User, { foreignKey: 'userId' });
+  UserHasNotification.belongsTo(Group, { foreignKey: 'groupId' });
+  UserHasNotification.belongsTo(Notif, { foreignKey: 'notificationId' });
   await UserHasNotification.sync({ force: false });
   return UserHasNotification;
 }

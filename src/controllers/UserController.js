@@ -243,7 +243,8 @@ class UserController{
                         return res.status(201).json({
                             token:token,
                             success:true,
-                            message: 'you have signed up successfully' 
+                            message: 'you have signed up successfully',
+                            data:dataValues
                         });
                     }
             }else{
@@ -514,7 +515,8 @@ class UserController{
                 if(newUser){
                         return {
                         success:true,
-                        user_id:newUser.dataValues.id
+                        user_id:newUser.dataValues.id,
+                        data:newUser
                         };
                 }else{
                     return {
