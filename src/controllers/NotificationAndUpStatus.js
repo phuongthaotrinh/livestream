@@ -186,7 +186,7 @@ class NotificationAndUpStatus{
                 success:true,
             })
         } catch (error) {
-             console.log(error)
+             console.log(error);
         }
     }
 
