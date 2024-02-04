@@ -5,6 +5,9 @@ const user_has_notification = require("../Models/UserHasNotification");
 const user = require("../Models/User");
 const groups = require("../Models/Group");
 class NotificationAndUpStatus{
+    constructor(){
+        this.getNotification = this.getNotification.bind(this)
+    }
      async addNewNotification(req,res){
         try {
             const{title,message,user_id,group_id,status} = req.body;
@@ -90,7 +93,7 @@ class NotificationAndUpStatus{
           }
      }
      // send notification to group member 
-    async sendNotification(req,res){
+    sendNotification= async(req,res)=>{
         try {
             const {userIds,groupId,status,notificationId} = req.body;
             const Notifications = await notification()
@@ -104,6 +107,7 @@ class NotificationAndUpStatus{
                         status:status
                     }
                  });
+
                  if(!checkBefore){
                    await UserHasNotification.create({
                          userId:userId,
@@ -111,6 +115,7 @@ class NotificationAndUpStatus{
                          notificationId:notificationId,
                          status:status
                     })
+                   await this.getNotification(userId);
                  }else{
                     await UserHasNotification.update({
                         userId:userId,
@@ -118,6 +123,7 @@ class NotificationAndUpStatus{
                         notificationId:notificationId,
                         status:status
                    })
+                   await this.getNotification(userId);
                  }
             }));
 
@@ -147,9 +153,8 @@ class NotificationAndUpStatus{
         }
     }
     // get user notification 
-    async getNotification(req,res){
+    getNotification= async (user_id)=>{
         try {
-            const {user_id} = req.params;
             const Notification = await notification();
             let fetchAllNotification = [];
             const UserHasNotification = await user_has_notification();
