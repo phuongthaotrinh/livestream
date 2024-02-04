@@ -714,12 +714,14 @@ class UserController{
          const PlatformRegister = await platformRegister();
          const LiveStreamPlatform = await livestreamPlatform();
          const LiveStreamType = await livestreamType();
+         const from = new Date(startDate);
+         const to = new Date(endDate);
          if(startDate && endDate){
             TotalUser = await User.count({
                 where:{
                     block:false,
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [from, to]
                     },
                 }
             })
@@ -727,7 +729,7 @@ class UserController{
                 where:{
                     status:true,
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [from, to]
                     },
                 }
             })
@@ -735,7 +737,7 @@ class UserController{
                 where:{
                     status:true,
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [from, to]
                     },
                 }
             })
@@ -743,7 +745,7 @@ class UserController{
                where:{
                   status:"on",
                   createdAt: {
-                    [Op.between]: [startDate, endDate]
+                    [Op.between]: [from, to]
                 },
                }
             })
@@ -751,7 +753,7 @@ class UserController{
                 where:{
                     status:"active",
                     createdAt: {
-                        [Op.between]: [startDate, endDate]
+                        [Op.between]: [from, to]
                     },
                 }
             })
