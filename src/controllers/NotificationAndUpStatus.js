@@ -2,6 +2,8 @@ const Pusher = require("pusher");
 const notification = require("../Models/Notification");
 const { Op } = require("sequelize");
 const user_has_notification = require("../Models/UserHasNotification");
+const user = require("../Models/User");
+const groups = require("../Models/Group");
 class NotificationAndUpStatus{
      async addNewNotification(req,res){
         try {
@@ -56,16 +58,28 @@ class NotificationAndUpStatus{
      async getAllNotification(req,res){
           try {
             const {user_id} = req.params;
+            const Users = await user();
+            const Groups = await groups()
             const Notification = await notification();
             const data = await Notification.findAll({
-                where:{
-                    user_id:user_id,
-                    status:"on"
-                }
-            })
+        
+                include: [
+                    {
+                        model: Users,
+                    },
+                    {
+                        model: Groups,
+                    },
+                ],
+            });
+            const users_data = await Users.findAll();
+            const group_data = await  Groups.findAll()
             return res.status(200).json({
                 success:true,
-                data:data ? data:[]
+                data:data ? data:[],
+                users:users_data,
+                groups:group_data
+                
             })
           } catch (error) {
             console.log(error)
@@ -79,6 +93,7 @@ class NotificationAndUpStatus{
     async sendNotification(req,res){
         try {
             const {userIds,groupId,status,notificationId} = req.body;
+            const Notifications = await notification()
             const UserHasNotification = await user_has_notification();
             const results = await Promise.all(userIds.map(async (userId) => {
                 const checkBefore = await UserHasNotification.findOne({ 
@@ -94,22 +109,34 @@ class NotificationAndUpStatus{
                          userId:userId,
                          groupId:groupId,
                          notificationId:notificationId,
-                         status:notificationId
+                         status:status
                     })
                  }else{
                     await UserHasNotification.update({
                         userId:userId,
                         groupId:groupId,
                         notificationId:notificationId,
-                        status:notificationId
+                        status:status
                    })
                  }
             }));
+
             if(results){
-                return res.status(201).json({
-                    success:true,
-                    message:"sent successfully"
-                })
+                    const updateStt = await Notifications.update({
+                        status: "send"
+                    },{
+                        where :{
+                            id: notificationId
+                        }
+                    });
+
+                    if(updateStt > 0) {
+                        return res.status(201).json({
+                            success:true,
+                            message:"sent successfully"
+                        })
+                    }
+
             }
         } catch (error) {
              console.log(error)
@@ -162,5 +189,58 @@ class NotificationAndUpStatus{
              console.log(error)
         }
     }
+
+    async getUserNotif(req, res) {
+        const { user_id } = req.params;
+        const UserHasNotif = await user_has_notification();
+        const Notification = await notification()
+        const Users = await user();
+        const Groups = await groups();
+
+        const data = await UserHasNotif.findAll({
+            include: [
+                {
+                    model: Notification,
+                },
+                {
+                    model: Users,
+                    attributes: ['id', 'email', 'images', 'name']
+                },
+                {
+                    model: Groups,
+                    attributes: ['id', 'name'],
+                    include: {
+                        model: Users,
+                        attributes: ['id', 'email', 'images', 'name'],
+                    },
+                },
+            ],
+            where: {
+                userId: user_id,
+            },
+        });
+
+        return res.status(201).json({
+            data: data,
+        });
+    }
+
+    async triggerStatusNotif (req, res) {
+       try {
+           const UserHasNotif = await user_has_notification()
+          const {id} = req.params;
+          const exist = await UserHasNotif.findOne({id: id});
+          if(!exist) return res.status(400).json({message: "Not found Object"});
+          await UserHasNotif.update({ status: "read" }, {
+              where: {
+                  id: id,
+              },
+          })
+           return res.status(201).json({message: "Update status success"})
+       }  catch (e) {
+            throw  e
+       }
+    }
+
 }
 module.exports = new NotificationAndUpStatus();
