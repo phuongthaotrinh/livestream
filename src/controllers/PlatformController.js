@@ -7,9 +7,13 @@ const formField = require('../Models/FormField');
 const formFieldData = require('../Models/FormFieldData');
 const user = require('../Models/User');
 const userhasplatform = require('../Models/UserHasPlatform');
+const Pusher = require("pusher");
 const { Op } = require('sequelize');
 class PlatformController {
-    // retrive all platform and type 
+    // retrive all platform and type
+    constructor(){
+        this.sendApprove = this.sendApprove.bind(this)
+    }
     async getAll(req, res) {
         try {
             const LiveStreamPlatform = await livestreamPlatform();
@@ -272,6 +276,7 @@ class PlatformController {
                 }
              })
              if(affectedRows > 0){
+                await this.sendApprove(user_id,register_id)
                 return res.status(201).json({
                     success: true,
                     message: "save successfully"
@@ -285,6 +290,22 @@ class PlatformController {
         } catch (error) {
             console.log(error)
         }
+    }
+    sendApprove = async(user_id,register_id)=>{
+        const pusher = new Pusher({
+            appId: "1746567",
+            key: "8096f904b598c4cb5b50",
+            secret: "d31c1dc3e1e1f399db43",
+            cluster: "ap1",
+            useTLS: true
+          });
+          pusher.trigger("push-approve-channel", "push-approve-event", {
+            message:{
+                "message":"your registeration has been approve",
+                "user_id":user_id,
+                "register_id":register_id
+            }
+          });
     }
     // create form 
     async getForm(req, res) {
