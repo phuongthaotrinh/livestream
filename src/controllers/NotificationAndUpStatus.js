@@ -3,6 +3,9 @@ const notification = require("../Models/Notification");
 const { Op } = require("sequelize");
 const user_has_notification = require("../Models/UserHasNotification");
 class NotificationAndUpStatus{
+    constructor(){
+        this.getNotification = this.getNotification.bind(this)
+    }
      async addNewNotification(req,res){
         try {
             const{title,message,user_id,group_id,status} = req.body;
@@ -76,7 +79,7 @@ class NotificationAndUpStatus{
           }
      }
      // send notification to group member 
-    async sendNotification(req,res){
+    sendNotification= async(req,res)=>{
         try {
             const {userIds,groupId,status,notificationId} = req.body;
             const UserHasNotification = await user_has_notification();
@@ -89,6 +92,7 @@ class NotificationAndUpStatus{
                         status:status
                     }
                  });
+
                  if(!checkBefore){
                    await UserHasNotification.create({
                          userId:userId,
@@ -96,6 +100,7 @@ class NotificationAndUpStatus{
                          notificationId:notificationId,
                          status:notificationId
                     })
+                   await this.getNotification(userId);
                  }else{
                     await UserHasNotification.update({
                         userId:userId,
@@ -103,6 +108,7 @@ class NotificationAndUpStatus{
                         notificationId:notificationId,
                         status:notificationId
                    })
+                   await this.getNotification(userId);
                  }
             }));
             if(results){
@@ -120,9 +126,8 @@ class NotificationAndUpStatus{
         }
     }
     // get user notification 
-    async getNotification(req,res){
+    getNotification= async (user_id)=>{
         try {
-            const {user_id} = req.params;
             const Notification = await notification();
             let fetchAllNotification = [];
             const UserHasNotification = await user_has_notification();
