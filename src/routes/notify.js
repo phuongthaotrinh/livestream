@@ -8,5 +8,5 @@ router.post("/send-notification",TokenCheckMiddleware,notification_controller.se
 router.post("/get-user-notification",TokenCheckMiddleware,notification_controller.getNotification);
 router.get("/get-trigger-notification/:user_id",TokenCheckMiddleware,notification_controller.getNotification);
 router.get("/get-user-notif/:user_id",TokenCheckMiddleware,notification_controller.getUserNotif);
-router.patch("/trigger-notif/:id",TokenCheckMiddleware,notification_controller.triggerStatusNotif);
+router.patch("/trigger-notif",TokenCheckMiddleware,notification_controller.triggerStatusNotif);
 module.exports = router;

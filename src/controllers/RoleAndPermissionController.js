@@ -470,6 +470,7 @@ class RoleAndPermissionController{
                 where:{
                     user_id:user_id,
                     permission_id:permission_id,
+                    status:"on"
                 }
             })
             if(checkBefore){

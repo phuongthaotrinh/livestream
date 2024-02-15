@@ -263,7 +263,7 @@ class PlatformController {
       }
 
       // admin approve register platform form
-      async approveRegisteredPlatform(req,res){
+    approveRegisteredPlatform = async (req,res) =>{
          try {
              const {user_id,register_id,status}= req.body;
              const PlatformRegisters = await platformRegister();
@@ -271,12 +271,12 @@ class PlatformController {
                 additional_status:status
              },{
                 where:{
-                    user_id:user_id,
+                    // user_id:user_id,
                     id:register_id
                 }
              })
              if(affectedRows > 0){
-                await this.sendApprove(user_id,register_id)
+                 await this.sendApprove(user_id,register_id, status)
                 return res.status(201).json({
                     success: true,
                     message: "save successfully"
@@ -291,21 +291,30 @@ class PlatformController {
             console.log(error)
         }
     }
-    sendApprove = async(user_id,register_id)=>{
-        const pusher = new Pusher({
-            appId: "1746567",
-            key: "8096f904b598c4cb5b50",
-            secret: "d31c1dc3e1e1f399db43",
-            cluster: "ap1",
-            useTLS: true
-          });
-          pusher.trigger("push-approve-channel", "push-approve-event", {
-            message:{
-                "message":"your registeration has been approve",
-                "user_id":user_id,
-                "register_id":register_id
-            }
-          });
+    sendApprove = async(user_id,register_id,status)=>{
+        const PlatformRegisters = await platformRegister();
+        const data  = await PlatformRegisters.findOne({
+            where:{id: register_id}
+        })
+        if(data) {
+
+            const pusher = new Pusher({
+                appId: "1746567",
+                key: "8096f904b598c4cb5b50",
+                secret: "d31c1dc3e1e1f399db43",
+                cluster: "ap1",
+                useTLS: true
+            });
+            await pusher.trigger("push-approve-channel", "push-approve-event", {
+                message:{
+                    "message":`your register form no.${register_id} has been ${status}`,
+                    "user_id":data?.user_id,
+                    "register_id":register_id,
+                    "data":data
+                }
+            });
+        }
+
     }
     // create form 
     async getForm(req, res) {
@@ -357,36 +366,36 @@ class PlatformController {
     }
 
     // admin approve register platform form
-    async approveRegisteredPlatform(req, res) {
-        try {
-            const { user_id, register_id, status } = req.body;
-            const PlatformRegisters = await platformRegister();
-            const [affectedRows] = await PlatformRegisters.update({
-                additional_status: status
-            }, {
-                where: {
-                    user_id: user_id,
-                    id: form_id
-                }
-            })
-            if (affectedRows > 0) {
-                return res.status(201).json({
-                    success: true,
-                    message: "You have approved it"
-                })
-            } else {
-                return res.status(400).json({
-                    success: false,
-                    message: "Somthing went wrong"
-                })
-            }
-        } catch (error) {
-            return res.status(500).json({
-                success: false,
-                message: "Somthing went wrong while processing"
-            })
-        }
-    }
+    // async approveRegisteredPlatform(req, res) {
+    //     try {
+    //         const { user_id, register_id, status } = req.body;
+    //         const PlatformRegisters = await platformRegister();
+    //         const [affectedRows] = await PlatformRegisters.update({
+    //             additional_status: status
+    //         }, {
+    //             where: {
+    //                 user_id: user_id,
+    //                 id: form_id
+    //             }
+    //         })
+    //         if (affectedRows > 0) {
+    //             return res.status(201).json({
+    //                 success: true,
+    //                 message: "You have approved it"
+    //             })
+    //         } else {
+    //             return res.status(400).json({
+    //                 success: false,
+    //                 message: "Somthing went wrong"
+    //             })
+    //         }
+    //     } catch (error) {
+    //         return res.status(500).json({
+    //             success: false,
+    //             message: "Somthing went wrong while processing"
+    //         })
+    //     }
+    // }
     // get registered detail and result
     async getRegisteredDetailAndResult(req, res) {
         try {
@@ -418,12 +427,7 @@ class PlatformController {
             userSubmissions.map((v)=>{
                  platformIds.push(v.platform_ids)
             });
-            if(platformIds.length < 1){
-                return res.status(400).json({
-                    success:false,
-                    message:"Platform not found"
-                })
-            }
+
             let flatArray = [].concat(...platformIds);
             
             let uniqueArray = [...new Set(flatArray)];

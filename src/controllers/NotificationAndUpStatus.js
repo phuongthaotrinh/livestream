@@ -6,7 +6,9 @@ const user = require("../Models/User");
 const groups = require("../Models/Group");
 class NotificationAndUpStatus{
     constructor(){
-        this.getNotification = this.getNotification.bind(this)
+        this.getNotification = this.getNotification.bind(this);
+        this.getUserNotif = this.getUserNotif.bind(this);
+        this.getAllNotifWithoutParams = this.getAllNotifWithoutParams.bind(this);
     }
      async addNewNotification(req,res){
         try {
@@ -92,7 +94,7 @@ class NotificationAndUpStatus{
             })
           }
      }
-     // send notification to group member 
+     // send notification to group member
     sendNotification= async(req,res)=>{
         try {
             const {userIds,groupId,status,notificationId} = req.body;
@@ -115,20 +117,24 @@ class NotificationAndUpStatus{
                          notificationId:notificationId,
                          status:status
                     })
-                   await this.getNotification(userId);
+                     await this.getAllNotifWithoutParams(userId)
                  }else{
                     await UserHasNotification.update({
                         userId:userId,
                         groupId:groupId,
                         notificationId:notificationId,
                         status:status
-                   })
-                   await this.getNotification(userId);
-                 }
-            }));
+                   },{
+                        where:{
+                            userId:userId,
+                            groupId:groupId,
+                            notificationId:notificationId
+                        }
+                    })
 
-            if(results){
-                    const updateStt = await Notifications.update({
+                 }
+            })).then(async () => {
+                    await Notifications.update({
                         status: "send"
                     },{
                         where :{
@@ -136,19 +142,17 @@ class NotificationAndUpStatus{
                         }
                     });
 
-                    if(updateStt > 0) {
-                        return res.status(201).json({
-                            success:true,
-                            message:"sent successfully"
-                        })
-                    }
+            })
+            return res.status(201).json({
+                success:true,
+                results:results
+            })
 
-            }
         } catch (error) {
              console.log(error)
              return res.status(500).json({
                 success:false,
-                message:"something went wrong"
+                message:error
              })
         }
     }
@@ -156,6 +160,8 @@ class NotificationAndUpStatus{
     getNotification= async (user_id)=>{
         try {
             const Notification = await notification();
+            const Users = await user();
+
             let fetchAllNotification = [];
             const UserHasNotification = await user_has_notification();
             const fetchUserNotification = await UserHasNotification.findAll({
@@ -175,6 +181,7 @@ class NotificationAndUpStatus{
                     id:collectNotificationId,
                     status:"on"
                 }
+
             })
             const pusher = new Pusher({
                 appId: "1746567",
@@ -183,9 +190,9 @@ class NotificationAndUpStatus{
                 cluster: "ap1",
                 useTLS: true
               });
-              
+
               pusher.trigger("push-notification-channel", "push-notification-event", {
-                message:fetchAllNotification ? fetchAllNotification:[]
+                message:test ? test:[]
               });
             return res.status(200).json({
                 success:true,
@@ -195,12 +202,20 @@ class NotificationAndUpStatus{
         }
     }
 
-    async getUserNotif(req, res) {
+     getUserNotif = async (req, res) =>  {
         const { user_id } = req.params;
+
         const UserHasNotif = await user_has_notification();
         const Notification = await notification()
         const Users = await user();
         const Groups = await groups();
+         const pusher = new Pusher({
+             appId: "1746567",
+             key: "8096f904b598c4cb5b50",
+             secret: "d31c1dc3e1e1f399db43",
+             cluster: "ap1",
+             useTLS: true
+         });
 
         const data = await UserHasNotif.findAll({
             include: [
@@ -224,19 +239,59 @@ class NotificationAndUpStatus{
                 userId: user_id,
             },
         });
-
+         await pusher.trigger("push-notification-channel", "push-notification-event", {
+             message: data ? data : []
+         });
         return res.status(201).json({
             data: data,
         });
     }
 
+    getAllNotifWithoutParams = async () =>  {
+        const UserHasNotif = await user_has_notification();
+        const Notification = await notification()
+        const Users = await user();
+        const Groups = await groups();
+        const pusher = new Pusher({
+            appId: "1746567",
+            key: "8096f904b598c4cb5b50",
+            secret: "d31c1dc3e1e1f399db43",
+            cluster: "ap1",
+            useTLS: true
+        });
+        const data = await UserHasNotif.findAll({
+            include: [
+                {
+                    model: Notification,
+                },
+                {
+                    model: Users,
+                    attributes: ['id', 'email', 'images', 'name']
+                },
+                {
+                    model: Groups,
+                    attributes: ['id', 'name'],
+                    include: {
+                        model: Users,
+                        attributes: ['id', 'email', 'images', 'name'],
+                    },
+                },
+            ]
+        });
+
+
+        await pusher.trigger("push-notification-channel", "push-notification-event", {
+            message: data ? data : []
+        });
+
+    }
     async triggerStatusNotif (req, res) {
        try {
            const UserHasNotif = await user_has_notification()
-          const {id} = req.params;
+          const {id, status} = req.body;
           const exist = await UserHasNotif.findOne({id: id});
           if(!exist) return res.status(400).json({message: "Not found Object"});
-          await UserHasNotif.update({ status: "read" }, {
+          await UserHasNotif.update({ status: status }, {
               where: {
                   id: id,
               },

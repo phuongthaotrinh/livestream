@@ -18,6 +18,10 @@ const slide = require('../Models/Slide');
 const platformRegister = require('../Models/PlatformRegister');
 const livestreamPlatform = require('../Models/LivestreamPlatform');
 const livestreamType = require('../Models/LivestreamType');
+const roleHasPer = require('../Models/RoleHasPermission');
+
+
+
 const secret =process.env.SECRET;
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -654,11 +658,22 @@ class UserController{
    async getBelongGroup(req,res){
       try {
          const {user_id} = req.params;
-         const Group = await group();
-         const data = await Group.findAll({
+         const userHasGroup = await userGroup();
+         const User = await setup()
+          const Groups = await group()
+
+         const data = await userHasGroup.findAll({
             where:{
-                user_id:user_id
-            }
+                child_id:user_id
+            },
+             include:[
+                 {
+                     model: User
+                 },
+                 {
+                     model: Groups
+                 },
+             ]
          });
          return res.status(200).json({
             success:true,
@@ -820,5 +835,84 @@ class UserController{
          })
        }
    }
-} 
+
+   async getUserDetail(req, res) {
+    const {user_id}  = req.params;
+       const Role = await role();
+       const Permission = await permission();
+    const userRole = await userHasRole();
+    const Users = await setup();
+    const Groups = await group();
+    const UserGroup = await userGroup();
+
+    const RoleHasPermission = await roleHasPer();
+
+
+    const info = await Users.findOne({id:user_id});
+
+    const groupManagerData = await Groups.findAll({
+        where:{
+            user_id:user_id
+        }
+    })
+
+   const groupBelongData = await UserGroup.findAll({
+       where:{
+           child_id:user_id
+       },
+       include:
+           {
+               model:Users,
+               attributes:['id', 'email', 'images','name'],
+
+           }
+   });
+
+    let permissionData = [];
+    let roleData = [];
+
+
+
+
+    if(info) {
+        roleData = await userRole.findAll({
+            where:{
+                user_id: user_id,
+                status: "on"
+            },
+            include:[
+                {
+                    model:Role,
+                    attributes:['id', 'name']
+                }
+            ]
+        });
+
+
+
+
+
+    }
+
+    const data = {
+        groupManager:groupManagerData,
+        groupBelong:groupBelongData,
+        info:info,
+        permission:permissionData,
+        // enablePermission:[],
+        // platforms:[],
+        // user_has_pl_id:0,
+        role:roleData
+    }
+
+
+    return res.status(201).json({
+        data:data
+    })
+
+
+
+
+   }
+}
 module.exports = new UserController();
