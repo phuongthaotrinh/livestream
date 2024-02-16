@@ -23,17 +23,33 @@ class AdditionalController{
     async addSlide(req, res) {
         try {
      
-            const {image_link,position} = req.body
+            const {image_link,position,id} = req.body
             const Slide = await slide();
+            if(!id){
                 await Slide.create({
                     image_link:image_link,
                     position:position,
                     
                 });
-            return res.status(201).json({
-                success: true,
-                message: 'All files are inserted'
-            });
+                return res.status(201).json({
+                    success: true,
+                    message: 'All files are inserted'
+                });
+            }else{
+                await Slide.update({
+                    image_link:image_link,
+                    position:position,
+                    
+                },{
+                    where:{
+                        id:id
+                    }
+                });
+                return res.status(201).json({
+                    success: true,
+                    message: 'All files are updated'
+                });
+            }
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: 'Internal Server Error' });
