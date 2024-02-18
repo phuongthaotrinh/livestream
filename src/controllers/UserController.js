@@ -19,7 +19,7 @@ const platformRegister = require('../Models/PlatformRegister');
 const livestreamPlatform = require('../Models/LivestreamPlatform');
 const livestreamType = require('../Models/LivestreamType');
 const roleHasPer = require('../Models/RoleHasPermission');
-
+const visitedUser = require('../Models/VisitedUser');
 
 
 const secret =process.env.SECRET;
@@ -909,10 +909,116 @@ class UserController{
     return res.status(201).json({
         data:data
     })
-
-
-
-
    }
+   // visited user 
+   async addVisitedUser(req,res){
+     try {
+        const {user_id} = req.body;
+        const VisitedUser = await visitedUser();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const checkBofore = await VisitedUser.findOne({
+            where:{
+                user_id:user_id,
+                createdAt:{
+                    [Op.gte]:today
+                }
+            },
+        })
+        if(!checkBofore){
+            const save = await VisitedUser.create({
+               user_id:user_id
+            });
+            if(save){
+                return res.status(201).json({
+                    success:true,
+                })
+            }else{
+                return res.status(400).json({
+                    success:false
+                })
+            }
+        }
+     } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success:false
+        })
+     }
+   }
+   async getStatisticVisitedUser(req,res){
+       try {
+        const VisitedUser = await visitedUser();
+        const recordsByMonth = await VisitedUser.findAll({
+            attributes: [
+              [Sequelize.fn('MONTH',Sequelize.col('createdAt')), 'month'],
+              [Sequelize.fn('YEAR',Sequelize.col('createdAt')), 'year'],
+              [Sequelize.fn('count', Sequelize.col('id')), 'count'] 
+            ],
+            group: [
+                Sequelize.fn('MONTH', Sequelize.col('createdAt')),
+                Sequelize.fn('YEAR', Sequelize.col('createdAt'))
+              ]
+          });
+          return res.status(200).json({
+            success:true,
+            data:recordsByMonth
+          })
+       } catch (error) {
+          console.log(error)
+          return res.status(500).json({
+            success:true,
+            data:[]
+          })
+       }
+   }
+   // get recent visited users 
+   async getVisitedUser(req, res) {
+    try {
+      const VisitedUser = await visitedUser();
+      const User = await user();
+      
+      // Get the start of today
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+  
+      // Get the end of today
+      const todayEnd = new Date();
+      todayEnd.setHours(23, 59, 59, 999);
+  
+      // Retrieve visited users for today
+      const data = await VisitedUser.findAll({
+        where: {
+          createdAt: {
+            [Op.between]: [todayStart, todayEnd] // Find records created between start and end of today
+          }
+        },
+        include: [{
+          model: User,
+          attributes: ['id', 'name']
+        }]
+      });
+  
+      if (data.length > 0) {
+        return res.status(200).json({
+          success: true,
+          data: data
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: "No visited users found for today."
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        success: false,
+        message: "Internal server error."
+      });
+    }
+  }
+  
+  
 }
 module.exports = new UserController();

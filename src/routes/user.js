@@ -33,4 +33,8 @@ router.get('/get-detail-user/:user_id',TokenCheckMiddleware,user_controller.getU
 
 // statistic
 router.post('/get-system-statistic',TokenCheckMiddleware,user_controller.getStatistic);
+//add visited user
+router.post('/add-visited-user',TokenCheckMiddleware,user_controller.addVisitedUser);
+router.get('/get-statistic-visited-user',TokenCheckMiddleware,user_controller.getStatisticVisitedUser);
+router.get('/get-current-visited-user',TokenCheckMiddleware,user_controller.getVisitedUser);
 module.exports = router;
